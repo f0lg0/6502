@@ -2,6 +2,7 @@
 #define CPU_H
 
 #include <stdint.h>
+
 #include "mem.h"
 
 void cpu_reset(void);
