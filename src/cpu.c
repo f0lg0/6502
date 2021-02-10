@@ -77,7 +77,8 @@ void cpu_reset(void) {
 static uint8_t get_mem(uint32_t addr, struct mem* mem_ptr) {
     uint8_t parsed = 0;
 
-    if (addr >= 0x0000 && addr <= 0x00FF) {
+    // no need to check >= 0x0000, it's unsigned
+    if (addr <= 0x00FF) {
         return mem_ptr->zero_page[addr];
     } else if (addr >= 0x0100 && addr <= 0x01FF) {
         parsed = addr - 0x0100;
@@ -86,7 +87,7 @@ static uint8_t get_mem(uint32_t addr, struct mem* mem_ptr) {
         parsed = addr - 0xFDFA;
         return mem_ptr->last_six[parsed];
     } else {
-        parsed = addr - 0x0200
+        parsed = addr - 0x0200;
         return mem_ptr->data[parsed];
     }
 }
