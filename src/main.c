@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     struct mem* mp = mem_get_ptr();
 
     cpu_reset();
-    cpu_exec(1, mp);
+    cpu_exec(2, mp);
 
     return 0;
 }

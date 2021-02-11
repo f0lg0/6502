@@ -1,9 +1,9 @@
-#include "include/cpu.h"
-
 #include <stdint.h>
 #include <stdio.h>
 
+#include "include/cpu.h"
 #include "include/mem.h"
+#include "include/instructions.h"
 #include "utils/misc.h"
 
 /**
@@ -73,7 +73,6 @@ void cpu_reset(void) {
     cpu.sr = 0;
 }
 
-// TODO: IMPORTANT, addresses in the pages are different from the general addr.
 static uint8_t get_mem(uint32_t addr, struct mem* mem_ptr) {
     uint8_t parsed = 0;
 
@@ -92,16 +91,18 @@ static uint8_t get_mem(uint32_t addr, struct mem* mem_ptr) {
     }
 }
 
-uint8_t cpu_fetch(uint32_t* cycles, struct mem* mem_ptr) {
+uint8_t cpu_fetch(struct mem* mem_ptr) {
     uint8_t data = get_mem(cpu.pc, mem_ptr); 
     cpu.pc++;
-    cycles--;
 
     return data;
 }
 
 void cpu_exec(uint32_t cycles, struct mem* mem_ptr) {
-    printf("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
-    uint8_t fetched = cpu_fetch(&cycles, mem_ptr);
-    printf("(cpu_exec) fetched: 0x%X\n", fetched);
+    while (cycles > 0) {
+        printf("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
+        uint8_t fetched = cpu_fetch(mem_ptr);
+        printf("(cpu_exec) fetched: 0x%X\n", fetched);
+        inst_exec(fetched, &cycles);
+    }
 }
