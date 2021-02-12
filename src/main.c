@@ -8,11 +8,9 @@ int main(int argc, char** argv) {
 
     mem_init();
     mem_dump();
-    
-    struct mem* mp = mem_get_ptr();
 
     cpu_reset();
-    cpu_exec(0, mp);
+    cpu_exec();
 
     return 0;
 }

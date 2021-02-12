@@ -32,6 +32,9 @@ struct central_processing_unit {
     uint8_t sr;
 } cpu;
 
+uint32_t cycles = 0;
+struct mem* mem_ptr = NULL;
+
 /**
  * cpu_extract_sr: Extract one of the 7 flags from the status reg.
  *
@@ -66,14 +69,35 @@ uint8_t cpu_mod_sr(uint8_t flag, uint8_t val) {
  * */
 void cpu_reset(void) {
     cpu.pc = 0x200;
-    cpu.sp = 0;
-    cpu.sp = 0;
+    cpu.sp = 0xFD;
+    cpu.ac = 0;
     cpu.x = 0;
     cpu.y = 0;
-    cpu.sr = 0;
+    cpu.sr = 0x00;
+
+    cycles = 8;
 }
 
-static uint8_t get_mem(uint32_t addr, struct mem* mem_ptr) {
+void cpu_set_reg(struct regs regs) {
+    printf("(cpu_set_reg) pc: %d, sp: %d, ac: %d, x: %d, y: %d\n", regs.pc, regs.sp, regs.ac, regs.x, regs.y);
+    if (regs.pc >= 0) cpu.pc = regs.pc;
+    if (regs.sp >= 0) cpu.sp = regs.sp;
+    if (regs.ac >= 0) {
+        cpu.ac = regs.ac;
+    };
+    if (regs.x) cpu.x = regs.x;
+    if (regs.y) cpu.y = regs.y;
+
+    if (cpu.ac == 0) {
+        cpu_mod_sr(1, 1);
+    }
+
+    if ((cpu.ac & 0x80) > 0) {
+        cpu_mod_sr(7, 1);
+    }
+}
+
+static uint8_t get_mem(uint32_t addr) {
     uint8_t parsed = 0;
 
     // no need to check >= 0x0000, it's unsigned
@@ -91,18 +115,23 @@ static uint8_t get_mem(uint32_t addr, struct mem* mem_ptr) {
     }
 }
 
-uint8_t cpu_fetch(struct mem* mem_ptr) {
-    uint8_t data = get_mem(cpu.pc, mem_ptr); 
+uint8_t cpu_fetch() {
+    uint8_t data = get_mem(cpu.pc);
     cpu.pc++;
 
     return data;
 }
 
-void cpu_exec(uint32_t cycles, struct mem* mem_ptr) {
+void cpu_exec() {
+    mem_ptr = mem_get_ptr();
     printf("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
 
-    uint8_t fetched = cpu_fetch(mem_ptr);
-    printf("(cpu_exec) fetched: 0x%X\n", fetched);
-    inst_exec(fetched, &cycles);
+    uint8_t fetched = 0x00;
+    do {
+        // TODO: actual instructions don't get executed
+        fetched = cpu_fetch(mem_ptr);
+        printf("(cpu_exec) fetched: 0x%X\n", fetched);
+        inst_exec(fetched, &cycles);
+    } while (cycles != 0);
 
 }
