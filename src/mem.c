@@ -38,6 +38,8 @@ void mem_init(void) {
     memset(memory.stack, 0, sizeof(memory.stack));
     memset(memory.data, 0, sizeof(memory.data));
 
+    memory.data[0] = 0xA9;
+
     // TODO: not really sure about this
     memory.last_six[0] = 0xA;
     memory.last_six[1] = 0xB;

@@ -65,7 +65,7 @@ uint8_t cpu_mod_sr(uint8_t flag, uint8_t val) {
  * @return void
  * */
 void cpu_reset(void) {
-    cpu.pc = 0;
+    cpu.pc = 0x200;
     cpu.sp = 0;
     cpu.sp = 0;
     cpu.x = 0;
@@ -99,10 +99,10 @@ uint8_t cpu_fetch(struct mem* mem_ptr) {
 }
 
 void cpu_exec(uint32_t cycles, struct mem* mem_ptr) {
-    while (cycles > 0) {
-        printf("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
-        uint8_t fetched = cpu_fetch(mem_ptr);
-        printf("(cpu_exec) fetched: 0x%X\n", fetched);
-        inst_exec(fetched, &cycles);
-    }
+    printf("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
+
+    uint8_t fetched = cpu_fetch(mem_ptr);
+    printf("(cpu_exec) fetched: 0x%X\n", fetched);
+    inst_exec(fetched, &cycles);
+
 }
