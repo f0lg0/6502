@@ -84,6 +84,8 @@ uint8_t cpu_mod_sr(uint8_t flag, uint8_t val) {
  * @return void
  * */
 void cpu_reset(void) {
+    printf("(cpu_reset) called.\n");
+
     cpu.pc = 0x200;
     cpu.sp = 0xFD;
     cpu.ac = 0x00;

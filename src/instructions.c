@@ -85,13 +85,10 @@ struct instruction lookup[256] = {
  * @return void
  */
 void inst_exec(uint8_t opcode, uint32_t* cycles) {
-    printf("(inst_exec) cycles: %d, %p\n", *(cycles), (void*)cycles);
-
     *(cycles) = lookup[opcode].cycles;
-    printf("(inst_exec if_stat) cycles: %d\n", *(cycles));
 
     (*(lookup[opcode].mode))();
     (*(lookup[opcode].op))();
 
-    printf("(inst_exec end) cycles: %d, %p\n", *(cycles), (void *)cycles);
+    printf("(inst_exec) cycles: %d, %p\n", *(cycles), (void *)cycles);
 }
