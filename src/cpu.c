@@ -32,21 +32,33 @@ struct central_processing_unit {
     uint8_t sr;
 } cpu;
 
+// clock cycles, every fetch implies a clock cycle
 uint32_t cycles = 0;
+
 struct mem* mem_ptr = NULL;
 
-void cpu_init() {
+/**
+ * cpu_init: Initialize CPU by linking it to the memory
+ * @param void
+ * @return void
+ */
+void cpu_init(void) {
     mem_ptr = mem_get_ptr();
 }
 
 /**
  * cpu_extract_sr: Extract one of the 7 flags from the status reg.
- *
- * @param the flag to be extracted
+ * @param flag The flag to be extracted
  * @return the bit of the wanted flag
  * */
 uint8_t cpu_extract_sr(uint8_t flag) { return ((cpu.sr >> (flag % 8)) & 1); }
 
+/**
+ * cpu_mod_sr: Modify the sr register (flags)
+ * @param flag The flag to set
+ * @param val The value
+ * @return 0 if success, 1 if failure
+ */
 uint8_t cpu_mod_sr(uint8_t flag, uint8_t val) {
     if (val != 0 && val != 1) return 1;
 
@@ -82,8 +94,15 @@ void cpu_reset(void) {
     cycles = 8;
 }
 
-void cpu_set_reg(struct regs regs) {
+/**
+ * cpu_set_regs: set the CPU registers, this is used in the instructions module
+ *               to communicate with the CPU
+ * @param regs A struct of registers
+ * @return void
+ */
+void cpu_set_regs(struct regs regs) {
     printf("(cpu_set_reg) pc: %d, sp: %d, ac: %d, x: %d, y: %d\n", regs.pc, regs.sp, regs.ac, regs.x, regs.y);
+
     if (regs.pc >= 0) cpu.pc = regs.pc;
     if (regs.sp >= 0) cpu.sp = regs.sp;
     if (regs.ac >= 0) {
@@ -101,6 +120,11 @@ void cpu_set_reg(struct regs regs) {
     }
 }
 
+/**
+ * get_mem: Wrapper to handle memory accessing, due to the pages being separated
+ * @param addr The address we want to access
+ * @return The retrieved data
+ */
 static uint8_t get_mem(uint32_t addr) {
     uint8_t parsed = 0;
 
@@ -119,6 +143,11 @@ static uint8_t get_mem(uint32_t addr) {
     }
 }
 
+/**
+ * cpu_fetch: Fetch from memory
+ * @param void
+ * @return void
+ */
 uint8_t cpu_fetch() {
     uint8_t data = get_mem(cpu.pc);
     cpu.pc++;
@@ -126,6 +155,11 @@ uint8_t cpu_fetch() {
     return data;
 }
 
+/**
+ * cpu_exec: Execute fetched data (single stepping)
+ * @param void
+ * @return void
+ */
 void cpu_exec() {
     printf("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
 
@@ -140,5 +174,4 @@ void cpu_exec() {
         }
         cycles--;
     } while (cycles != 0);
-
 }

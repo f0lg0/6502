@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
 
 #include "include/mem.h"
 #include "include/cpu.h"
