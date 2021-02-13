@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <stdint.h>
+
 #include "include/interface.h"
 
 SDL_Window* screen;

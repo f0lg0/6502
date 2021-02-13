@@ -10,27 +10,7 @@
  * Little-endian 8-bit microprocessor that expects addresses
  * to be store in memory least significant byte first
  * */
-struct central_processing_unit {
-    uint16_t pc;
-    uint8_t sp;
-    uint8_t ac;
-    uint8_t x;
-    uint8_t y;
-
-    /*
-     * Status Register:
-     *
-     * bit 0: Carry
-     * bit 1: Zero
-     * bit 2: Interrupt
-     * bit 3: Decimal
-     * bit 4: Break
-     * bit 5: 0
-     * bit 6: Overflow (V)
-     * bit 7: Negative
-     * */
-    uint8_t sr;
-} cpu;
+struct central_processing_unit cpu;
 
 // clock cycles, every fetch implies a clock cycle
 uint32_t cycles = 0;
@@ -94,32 +74,6 @@ void cpu_reset(void) {
     cpu.sr = 0x00;
 
     cycles = 8;
-}
-
-/**
- * cpu_set_regs: set the CPU registers, this is used in the instructions module
- *               to communicate with the CPU
- * @param regs A struct of registers
- * @return void
- */
-void cpu_set_regs(struct regs regs) {
-    printf("(cpu_set_reg) pc: %d, sp: %d, ac: %d, x: %d, y: %d\n", regs.pc, regs.sp, regs.ac, regs.x, regs.y);
-
-    if (regs.pc >= 0) cpu.pc = regs.pc;
-    if (regs.sp >= 0) cpu.sp = regs.sp;
-    if (regs.ac >= 0) {
-        cpu.ac = regs.ac;
-    };
-    if (regs.x) cpu.x = regs.x;
-    if (regs.y) cpu.y = regs.y;
-
-    if (cpu.ac == 0) {
-        cpu_mod_sr(1, 1);
-    }
-
-    if ((cpu.ac & 0x80) > 0) {
-        cpu_mod_sr(7, 1);
-    }
 }
 
 /**
