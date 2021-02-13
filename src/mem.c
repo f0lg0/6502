@@ -1,9 +1,5 @@
 #include "include/mem.h"
-
-#include <stdint.h>
 #include <string.h>
-
-#include "utils/misc.h"
 
 /**
  * The memory:
@@ -18,14 +14,6 @@
  *
  * */
 struct mem memory;
-
-/**
- * mem_size: (debug) Retreive total memory size
- *
- * @param void
- * @return memory size
- * */
-size_t mem_size(void) { return sizeof(struct mem); }
 
 /**
  * mem_init: Initialize the memory to its initial state
@@ -64,8 +52,7 @@ int mem_dump(void) {
     FILE* fp = fopen("dump.bin", "wb+");
     if (fp == NULL) return 1;
 
-    size_t wb = 0;
-    wb = fwrite(memory.zero_page, 1, sizeof(memory.zero_page), fp);
+    size_t wb = fwrite(memory.zero_page, 1, sizeof(memory.zero_page), fp);
     if (wb != sizeof(memory.zero_page)) {
         printf("[FAILED] Errors while dumping the zero page.\n");
         return 1;
