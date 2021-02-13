@@ -65,16 +65,11 @@ struct instruction lookup[256] = {
 void inst_exec(uint8_t opcode, uint32_t* cycles) {
     printf("(inst_exec) cycles: %d, %p\n", *(cycles), (void*)cycles);
 
-    // running instruction at a single time
-    if (*(cycles) == 0) {
-        *(cycles) = lookup[opcode].cycles;
-        printf("(inst_exec if_stat) cycles: %d\n", *(cycles));
+    *(cycles) = lookup[opcode].cycles;
+    printf("(inst_exec if_stat) cycles: %d\n", *(cycles));
 
-        (*(lookup[opcode].mode))();
-        (*(lookup[opcode].op))();
-        printf("EXECUTED\n");
-    }
+    (*(lookup[opcode].mode))();
+    (*(lookup[opcode].op))();
 
-    *(cycles) -= 1;
     printf("(inst_exec end) cycles: %d, %p\n", *(cycles), (void *)cycles);
 }

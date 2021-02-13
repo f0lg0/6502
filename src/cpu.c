@@ -35,6 +35,10 @@ struct central_processing_unit {
 uint32_t cycles = 0;
 struct mem* mem_ptr = NULL;
 
+void cpu_init() {
+    mem_ptr = mem_get_ptr();
+}
+
 /**
  * cpu_extract_sr: Extract one of the 7 flags from the status reg.
  *
@@ -70,9 +74,9 @@ uint8_t cpu_mod_sr(uint8_t flag, uint8_t val) {
 void cpu_reset(void) {
     cpu.pc = 0x200;
     cpu.sp = 0xFD;
-    cpu.ac = 0;
-    cpu.x = 0;
-    cpu.y = 0;
+    cpu.ac = 0x00;
+    cpu.x = 0x00;
+    cpu.y = 0x00;
     cpu.sr = 0x00;
 
     cycles = 8;
@@ -123,15 +127,18 @@ uint8_t cpu_fetch() {
 }
 
 void cpu_exec() {
-    mem_ptr = mem_get_ptr();
     printf("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
 
     uint8_t fetched = 0x00;
     do {
-        // TODO: actual instructions don't get executed
-        fetched = cpu_fetch(mem_ptr);
-        printf("(cpu_exec) fetched: 0x%X\n", fetched);
-        inst_exec(fetched, &cycles);
+        printf("(loop) cycles: %d\n", cycles);
+        // executing in a take
+        if (cycles == 0) {
+            fetched = cpu_fetch(mem_ptr);
+            printf("(cpu_exec) fetched: 0x%X\n", fetched);
+            inst_exec(fetched, &cycles);
+        }
+        cycles--;
     } while (cycles != 0);
 
 }

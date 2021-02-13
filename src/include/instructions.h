@@ -1,5 +1,5 @@
-#ifndef INSTRUCTIONS_H
-#define INSTRUCTIONS_H
+#ifndef INC_6502_INSTRUCTIONS_H
+#define INC_6502_INSTRUCTIONS_H
 
 #include <stdint.h>
 

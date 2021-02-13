@@ -1,5 +1,5 @@
-#ifndef CPU_H
-#define CPU_H
+#ifndef INC_6502_CPU_H
+#define INC_6502_CPU_H
 
 #include <stdint.h>
 
@@ -22,5 +22,6 @@ uint8_t cpu_extract_sr(uint8_t flag);
 uint8_t cpu_mod_sr(uint8_t flag, uint8_t val);
 uint8_t cpu_fetch();
 void cpu_exec();
+void cpu_init();
 
 #endif
