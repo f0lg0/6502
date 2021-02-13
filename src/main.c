@@ -4,10 +4,9 @@
 #include "include/mem.h"
 #include "include/cpu.h"
 #include "include/interface.h"
+#include "include/kinput.h"
 
 int main(int argc, char** argv) {
-    uint8_t keypad[2] = {0};
-
     printf("(main): %d, %p\n", argc, (void*)argv);
 
     mem_init();
@@ -17,19 +16,15 @@ int main(int argc, char** argv) {
     inter_init_display();
 
     while (1) {
-        inter_event_handler(keypad);
+        kin_start();
 
         if (inter_should_quit()) {
             break;
         }
-
-        if (keypad[0]) {
-            cpu_exec();
-        }
-        keypad[0] = 0;
     }
 
 
     mem_dump();
+    inter_stop_display();
     return 0;
 }
