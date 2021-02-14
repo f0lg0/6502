@@ -33,13 +33,16 @@ void inter_event_handler(uint8_t* keypad) {
             case SDL_QUIT:
                 QUIT = 1;
                 break;
+
+            case SDL_KEYDOWN:
+                for (uint8_t keycode = 0; keycode < 2; keycode++) {
+                    keypad[keycode] = state[keymappings[keycode]];
+                }
+                break;
+
             default:
                 if (state[SDL_SCANCODE_ESCAPE]) {
                     QUIT = 1;
-                }
-
-                for (uint8_t keycode = 0; keycode < 2; keycode++) {
-                    keypad[keycode] = state[keymappings[keycode]];
                 }
                 break;
         }

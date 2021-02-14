@@ -5,7 +5,7 @@
 #include "peripherals/interface.h"
 #include "peripherals/kinput.h"
 
-uint8_t DEBUG;
+uint8_t DEBUG = 1;
 
 int main(int argc, char** argv) {
     printf("(main): %d, %p\n", argc, (void*)argv);
