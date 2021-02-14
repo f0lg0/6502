@@ -1,9 +1,11 @@
 #include <stdio.h>
 
-#include "include/mem.h"
-#include "include/cpu.h"
-#include "include/interface.h"
-#include "include/kinput.h"
+#include "mem/mem.h"
+#include "cpu/cpu.h"
+#include "peripherals/interface.h"
+#include "peripherals/kinput.h"
+
+uint8_t DEBUG;
 
 int main(int argc, char** argv) {
     printf("(main): %d, %p\n", argc, (void*)argv);

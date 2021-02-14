@@ -6,8 +6,10 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "include/instructions.h"
-#include "include/cpu.h"
+#include "instructions.h"
+#include "cpu.h"
+#include "../utils/misc.h"
+
 
 // absolute address in memory
 uint16_t addr_abs = 0x0000;
@@ -209,5 +211,5 @@ void inst_exec(uint8_t opcode, uint32_t* cycles) {
     (*(lookup[opcode].mode))();
     (*(lookup[opcode].op))();
 
-    printf("(inst_exec) cycles: %d, %p\n", *(cycles), (void *)cycles);
+    debug_print("(inst_exec) cycles: %d, %p\n", *(cycles), (void *)cycles);
 }

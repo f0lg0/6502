@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <stdint.h>
 
-#include "include/interface.h"
+#include "interface.h"
 
 SDL_Window* screen;
 SDL_Renderer* renderer;

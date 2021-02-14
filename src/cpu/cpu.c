@@ -1,10 +1,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "include/cpu.h"
-#include "include/mem.h"
-#include "include/instructions.h"
-#include "utils/misc.h"
+#include "cpu.h"
+#include "../mem/mem.h"
+#include "instructions.h"
+#include "../utils/misc.h"
+
 
 /**
  * Little-endian 8-bit microprocessor that expects addresses
@@ -117,11 +118,11 @@ uint8_t cpu_fetch() {
  * @return void
  */
 void cpu_exec() {
-    printf("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
+    debug_print("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
 
     uint8_t fetched = 0x00;
     do {
-        printf("(loop) cycles: %d\n", cycles);
+        debug_print("(loop) cycles: %d\n", cycles);
         // executing in a take
         if (cycles == 0) {
             fetched = cpu_fetch(mem_ptr);

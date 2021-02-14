@@ -1,8 +1,8 @@
 #include <stdint.h>
 
-#include "include/kinput.h"
-#include "include/interface.h"
-#include "include/cpu.h"
+#include "kinput.h"
+#include "interface.h"
+#include "../cpu/cpu.h"
 
 // keypad representing the keyboard
 uint8_t keypad[2] = {0};

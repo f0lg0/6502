@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #define MAX_MEM 1024 * 64
 
@@ -14,7 +13,6 @@ struct mem {
     uint8_t data[MAX_MEM - 0x206];
 };
 
-size_t mem_size(void);
 void mem_init(void);
 int mem_dump(void);
 struct mem* mem_get_ptr(void);

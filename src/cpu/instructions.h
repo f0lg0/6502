@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+extern uint8_t DEBUG;
+
 struct instruction {
     char* name;
     uint8_t (*op)(void);
