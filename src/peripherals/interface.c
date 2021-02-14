@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdint.h>
 
 #include "interface.h"
@@ -47,6 +48,34 @@ void inter_event_handler(uint8_t* keypad) {
                 break;
         }
     }
+}
+
+void inter_render_text(char* str) {
+    TTF_Init();
+
+    TTF_Font* font = TTF_OpenFont("../../assets/retro.ttf", 24);
+
+    if (font == NULL) {
+        printf("(FAILED) Cannot load font set!\n");
+        exit(1);
+    }
+
+    SDL_Color white = {255, 255, 255, 255};
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, str, white);
+
+    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+
+    SDL_Rect Message_rect;
+    Message_rect.x = 0;
+    Message_rect.y = 0;
+    Message_rect.w = 100;
+    Message_rect.h = 100;
+
+    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+
+    TTF_CloseFont(font);
+    SDL_FreeSurface(surfaceMessage);
+    SDL_DestroyTexture(Message);
 }
 
 uint8_t inter_should_quit(void) {
