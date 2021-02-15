@@ -7,9 +7,11 @@
 SDL_Window* screen;
 SDL_Renderer* renderer;
 TTF_Font* font;
-SDL_Surface* surface_msg;
-SDL_Texture* msg;
-SDL_Rect msg_rect;
+
+// header
+SDL_Surface* header_surface;
+SDL_Texture* header;
+SDL_Rect header_rect;
 
 SDL_Scancode keymappings[2] = {
         SDL_SCANCODE_SPACE, SDL_SCANCODE_R
@@ -23,7 +25,34 @@ void inter_init_display(void) {
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 }
 
-void inter_init_text(char* str) {
+static void display_header(void) {
+    SDL_Color white = {255, 255, 255, 255};
+    header_surface = TTF_RenderText_Solid(font, "6502 Emulator", white);
+
+    if (header_surface == NULL) {
+        printf("(FAILED) Can't create surface.\n");
+        exit(1);
+    }
+
+    header = SDL_CreateTextureFromSurface(renderer, header_surface);
+
+    if (header == NULL) {
+        printf("(FAILED) Can't create texture.\n");
+        exit(1);
+    }
+
+    header_rect.y = 0;
+    header_rect.w = W_WIDTH / 2;
+    header_rect.x = 0;
+    header_rect.h = 40;
+}
+
+static void destroy_header(void) {
+    SDL_FreeSurface(header_surface);
+    SDL_DestroyTexture(header);
+}
+
+void inter_init_text(void) {
     TTF_Init();
 
     font = TTF_OpenFont("../assets/retro.ttf", 24);
@@ -33,27 +62,7 @@ void inter_init_text(char* str) {
         exit(1);
     }
 
-    // TODO: move this to a dedicated function so I can draw arbitrary text without  initializing everything everytime
-
-    SDL_Color white = {255, 255, 255, 255};
-    surface_msg = TTF_RenderText_Solid(font, str, white);
-
-    if (surface_msg == NULL) {
-        printf("(FAILED) Can't create surface.\n");
-        exit(1);
-    }
-
-    msg = SDL_CreateTextureFromSurface(renderer, surface_msg);
-
-    if (msg == NULL) {
-        printf("(FAILED) Can't create texture.\n");
-        exit(1);
-    }
-
-    msg_rect.x = 0;
-    msg_rect.y = 0;
-    msg_rect.w = W_WIDTH / 2;
-    msg_rect.h = 40;
+    display_header();
 }
 
 void inter_draw(void) {
@@ -61,7 +70,7 @@ void inter_draw(void) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    if ((SDL_RenderCopy(renderer, msg, NULL, &msg_rect)) == -1) {
+    if ((SDL_RenderCopy(renderer, header, NULL, &header_rect)) == -1) {
         printf("(FAILED) Can't render text.\n");
         exit(1);
     }
@@ -102,8 +111,9 @@ uint8_t inter_should_quit(void) {
 }
 
 void inter_stop_display(void) {
-    SDL_FreeSurface(surface_msg);
-    SDL_DestroyTexture(msg);
+    // destroying texts
+    destroy_header();
+
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyWindow(screen);

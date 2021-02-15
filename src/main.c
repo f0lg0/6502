@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     cpu_reset();
 
     inter_init_display();
-    inter_init_text("6502 Emulator");
+    inter_init_text();
 
     while (1) {
         kin_start();
