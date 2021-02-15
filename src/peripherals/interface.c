@@ -53,29 +53,39 @@ void inter_event_handler(uint8_t* keypad) {
 void inter_render_text(char* str) {
     TTF_Init();
 
-    TTF_Font* font = TTF_OpenFont("../../assets/retro.ttf", 24);
+    TTF_Font* font = TTF_OpenFont("../assets/retro1.ttf", 24);
 
     if (font == NULL) {
-        printf("(FAILED) Cannot load font set!\n");
+        printf("(FAILED) Cannot load font set.\n");
         exit(1);
     }
 
     SDL_Color white = {255, 255, 255, 255};
-    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, str, white);
+    SDL_Surface* surface_msg = TTF_RenderText_Solid(font, str, white);
 
-    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    if (surface_msg == NULL) {
+        printf("(FAILED) Can't create surface.\n");
+        exit(1);
+    }
 
-    SDL_Rect Message_rect;
-    Message_rect.x = 0;
-    Message_rect.y = 0;
-    Message_rect.w = 100;
-    Message_rect.h = 100;
+    SDL_Texture* msg = SDL_CreateTextureFromSurface(renderer, surface_msg);
 
-    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+    if (msg == NULL) {
+        printf("(FAILED) Can't create texture.\n");
+        exit(1);
+    }
 
+    SDL_Rect msg_rect = {0, 0, 50, 20};
+    int8_t status = SDL_RenderCopy(renderer, msg, NULL, &msg_rect);
+
+    if (status == -1) {
+        printf("(FAILED) Can't render text.\n");
+        exit(1);
+    }
+
+    SDL_FreeSurface(surface_msg);
+    SDL_DestroyTexture(msg);
     TTF_CloseFont(font);
-    SDL_FreeSurface(surfaceMessage);
-    SDL_DestroyTexture(Message);
 }
 
 uint8_t inter_should_quit(void) {
