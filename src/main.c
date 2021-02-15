@@ -4,7 +4,6 @@
 #include "cpu/cpu.h"
 #include "peripherals/interface.h"
 #include "peripherals/kinput.h"
-#include <time.h>
 
 uint8_t DEBUG = 1;
 
