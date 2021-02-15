@@ -1,8 +1,17 @@
+/*
+ * NOTE: this module is trash. I am not a game/graphics developer, this
+ * is my first time creating a GUI for a program (I only have experience in web-dev).
+ * I am interested in feedback regarding graphics performance, I know there are some
+ * cool techniques but I want to focus more on the 6502 itself.
+ */
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "interface.h"
+#include "../cpu/cpu.h"
 
 SDL_Window* screen;
 SDL_Renderer* renderer;
@@ -12,6 +21,11 @@ TTF_Font* font;
 SDL_Surface* header_surface;
 SDL_Texture* header;
 SDL_Rect header_rect;
+
+// registers
+SDL_Surface* regs_surface;
+SDL_Texture* regs;
+SDL_Rect regs_rect;
 
 SDL_Scancode keymappings[2] = {
         SDL_SCANCODE_SPACE, SDL_SCANCODE_R
@@ -52,6 +66,45 @@ static void destroy_header(void) {
     SDL_DestroyTexture(header);
 }
 
+static void display_registers(void) {
+    // is this even secure? lol
+    // MAX STRING WE CAN POSSIBLY GET --> ac: 255\npc: 65535\nsp: 255\nx: 255\ny: 255\nsr: 255
+    uint16_t max_str_len = strlen("ac: 255 pc: 65535 sp: 255 x: 255 y: 255 sr: 255");
+    char* buff = malloc(max_str_len + 1);
+
+    if ((snprintf(buff, max_str_len, "ac: %d pc: %d sp: %d x: %d y: %d sr: %d", cpu.ac, cpu.pc,  cpu.sp, cpu.x, cpu.y, cpu.sr)) < 0) {
+        printf("(FAILED) Can't format string into buffer.\n");
+        exit(1);
+    }
+
+    SDL_Color white = {255, 0, 0, 255};
+    regs_surface = TTF_RenderText_Solid(font, buff, white);
+
+    if (regs_surface == NULL) {
+        printf("(FAILED) Can't create surface.\n");
+        exit(1);
+    }
+
+    regs = SDL_CreateTextureFromSurface(renderer, regs_surface);
+
+    if (regs == NULL) {
+        printf("(FAILED) Can't create texture.\n");
+        exit(1);
+    }
+
+    regs_rect.y = 50;
+    regs_rect.w = W_WIDTH - 10;
+    regs_rect.x = 0;
+    regs_rect.h = 20;
+
+    free(buff);
+}
+
+static void destroy_registers(void) {
+    SDL_FreeSurface(regs_surface);
+    SDL_DestroyTexture(regs);
+}
+
 void inter_init_text(void) {
     TTF_Init();
 
@@ -63,6 +116,7 @@ void inter_init_text(void) {
     }
 
     display_header();
+    display_registers();
 }
 
 void inter_draw(void) {
@@ -70,10 +124,25 @@ void inter_draw(void) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    if ((SDL_RenderCopy(renderer, header, NULL, &header_rect)) == -1) {
+    int8_t status;
+
+    status = SDL_RenderCopy(renderer, header, NULL, &header_rect);
+
+    if (status == -1) {
         printf("(FAILED) Can't render text.\n");
         exit(1);
     }
+
+    // TODO: make this better (maybe an update function). Avoid re-creating everything here
+    display_registers();
+
+    status = SDL_RenderCopy(renderer, regs, NULL, &regs_rect);
+
+    if (status == -1) {
+        printf("(FAILED) Can't render text.\n");
+        exit(1);
+    }
+
 
     SDL_RenderPresent(renderer);
 }
@@ -113,6 +182,7 @@ uint8_t inter_should_quit(void) {
 void inter_stop_display(void) {
     // destroying texts
     destroy_header();
+    destroy_registers();
 
     TTF_CloseFont(font);
     TTF_Quit();
