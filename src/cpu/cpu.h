@@ -30,7 +30,7 @@ extern struct central_processing_unit cpu;
 void cpu_reset(void);
 uint8_t cpu_extract_sr(uint8_t flag);
 uint8_t cpu_mod_sr(uint8_t flag, uint8_t val);
-uint8_t cpu_fetch();
+uint8_t cpu_fetch(uint16_t addr);
 void cpu_exec();
 void cpu_init(void);
 

@@ -82,7 +82,7 @@ void cpu_reset(void) {
  * @param addr The address we want to access
  * @return The retrieved data
  */
-static uint8_t get_mem(uint32_t addr) {
+static uint8_t get_mem(uint16_t addr) {
     uint8_t parsed = 0;
 
     // no need to check >= 0x0000, it's unsigned
@@ -91,7 +91,7 @@ static uint8_t get_mem(uint32_t addr) {
     } else if (addr >= 0x0100 && addr <= 0x01FF) {
         parsed = addr - 0x0100;
         return mem_ptr->stack[parsed];
-    } else if (addr >= 0xFFFA && addr <= 0xFFFF) {
+    } else if (addr >= 0xFFFA) {
         parsed = addr - 0xFDFA;
         return mem_ptr->last_six[parsed];
     } else {
@@ -101,13 +101,13 @@ static uint8_t get_mem(uint32_t addr) {
 }
 
 /**
- * cpu_fetch: Fetch from memory
+ * cpu_fetch: Fetch memory from a given address
  * @param void
  * @return void
  */
-uint8_t cpu_fetch() {
-    uint8_t data = get_mem(cpu.pc);
-    cpu.pc++;
+uint8_t cpu_fetch(uint16_t addr) {
+    uint8_t data = get_mem(addr);
+    if (addr == cpu.pc) cpu.pc++;
 
     return data;
 }
@@ -125,7 +125,7 @@ void cpu_exec() {
         debug_print("(loop) cycles: %d\n", cycles);
         // executing in a take
         if (cycles == 0) {
-            fetched = cpu_fetch(mem_ptr);
+            fetched = cpu_fetch(cpu.pc);
             printf("(cpu_exec) fetched: 0x%X\n", fetched);
             inst_exec(fetched, &cycles);
         }
