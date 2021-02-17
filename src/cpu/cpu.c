@@ -83,7 +83,7 @@ void cpu_reset(void) {
  * @return The retrieved data
  */
 static uint8_t get_mem(uint16_t addr) {
-    uint8_t parsed = 0;
+    uint8_t parsed;
 
     // no need to check >= 0x0000, it's unsigned
     if (addr <= 0x00FF) {
@@ -120,7 +120,7 @@ uint8_t cpu_fetch(uint16_t addr) {
 void cpu_exec() {
     debug_print("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
 
-    uint8_t fetched = 0x00;
+    uint8_t fetched;
     do {
         debug_print("(loop) cycles: %d\n", cycles);
         // executing in a take
