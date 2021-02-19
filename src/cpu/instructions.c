@@ -1,6 +1,8 @@
 /*
  * NOTE: this is meant to be an extension of cpu.c, in fact these two files share
  * the same cpu struct.
+ *
+ * TODO: check for errors on cpu_fetch()
  */
 
 #include <stdio.h>
@@ -10,15 +12,18 @@
 #include "cpu.h"
 #include "../utils/misc.h"
 
-
 // absolute address in memory
 uint16_t addr_abs = 0x0000;
 
 // relative address in memory
 uint16_t addr_rel = 0x0000;
 
+uint8_t op = 0x00;
+
 // a pointer to the fetched opcode in the cpu module
-uint8_t* fetched_ptr = NULL;
+uint8_t fetched = 0x00;
+
+static void fetch(void);
 
 /*
  * =============================================
@@ -32,12 +37,12 @@ uint8_t* fetched_ptr = NULL;
  * IMP: Implicit mode. This is used in instructions such as CLC.
  *      we target the accumulator for instructions like PHA
  * @param void
- * @return void
+ * @return 0
  */
 static uint8_t IMP(void) {
     printf("(MODE) IMP.\n");
 
-    *(fetched_ptr) = cpu.ac;
+    fetched = cpu.ac;
     return 0;
 }
 
@@ -255,15 +260,59 @@ static uint8_t XXX(void)  {
 /**
  * LDA: Load Accumulator
  * @param void
- * @return 0
+ * @return 1
  */
 static uint8_t LDA(void) {
     printf("(LDA) Called LDA.\n");
 
-    uint8_t val = cpu_fetch(cpu.pc);
-    cpu.ac = val;
+    fetch();
+    cpu.ac = fetched;
 
-    return 0;
+    if (cpu.ac == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    // if 7th bit of cpu.ac is set
+    if (cpu.ac & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
+    return 1;
+}
+
+/**
+ * LDX: Load X register
+ * @param void
+ * @return 1
+ */
+static uint8_t LDX(void) {
+    fetch();
+    cpu.x = fetched;
+
+    if (cpu.x == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.x & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
+    return 1;
+}
+
+static uint8_t LDY(void) {
+    fetch();
+    cpu.y = fetched;
+
+    if (cpu.y == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.y & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
+    return 1;
 }
 
 static uint8_t BRK(void) {
@@ -303,10 +352,6 @@ static uint8_t BCC(void) {
     return 0;
 }
 
-static uint8_t LDY(void) {
-    return 0;
-}
-
 static uint8_t BCS(void) {
     return 0;
 }
@@ -332,6 +377,17 @@ static uint8_t ORA(void) {
 }
 
 static uint8_t AND(void) {
+    fetch();
+    cpu.ac = cpu.ac & fetched;
+
+    if (cpu.ac == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.ac & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
     return 0;
 }
 
@@ -344,6 +400,17 @@ static uint8_t ADC(void) {
 }
 
 static uint8_t STA(void) {
+    cpu_write(addr_abs, cpu.ac);
+    return 0;
+}
+
+static uint8_t STX(void) {
+    cpu_write(addr_abs, cpu.x);
+    return 0;
+}
+
+static uint8_t STY(void) {
+    cpu_write(addr_abs, cpu.y);
     return 0;
 }
 
@@ -355,15 +422,7 @@ static uint8_t SBC(void) {
     return 0;
 }
 
-static uint8_t LDX(void) {
-    return 0;
-}
-
 static uint8_t BIT(void) {
-    return 0;
-}
-
-static uint8_t STY(void) {
     return 0;
 }
 
@@ -383,10 +442,6 @@ static uint8_t ROR(void) {
     return 0;
 }
 
-static uint8_t STX(void) {
-    return 0;
-}
-
 static uint8_t DEC(void) {
     return 0;
 }
@@ -396,6 +451,9 @@ static uint8_t INC(void) {
 }
 
 static uint8_t PHP(void) {
+    cpu_write(0x0100 + cpu.sp, cpu.sr);
+    cpu.sp--;
+
     return 0;
 }
 
@@ -408,14 +466,32 @@ static uint8_t CLC(void) {
 }
 
 static uint8_t PLP(void) {
+    cpu.sp++;
+    cpu.sr = cpu_fetch(0x0100 + cpu.sp);
+
     return 0;
 }
 
 static uint8_t PLA(void) {
+    cpu.sp++;
+    cpu.ac = cpu_fetch(0x0100 + cpu.sp);
+
+    if (cpu.ac == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.ac & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
     return 0;
 }
 
 static uint8_t PHA(void) {
+    // 0x0100 is the starting addr of the stack
+    cpu_write(0x0100 + cpu.sp, cpu.ac);
+    cpu.sp--;
+
     return 0;
 }
 
@@ -432,10 +508,15 @@ static uint8_t DEY(void) {
 }
 
 static uint8_t TYA(void) {
-    return 0;
-}
+    cpu.ac = cpu.y;
 
-static uint8_t TAY(void) {
+    if (cpu.ac == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.ac & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
     return 0;
 }
 
@@ -459,18 +540,63 @@ static uint8_t SED(void) {
 }
 
 static uint8_t TXA(void) {
+    cpu.ac = cpu.x;
+
+    if (cpu.ac == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.ac & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
     return 0;
 }
 
 static uint8_t TXS(void) {
+    cpu.sp = cpu.x;
     return 0;
 }
 
 static uint8_t TAX(void) {
+    cpu.x = cpu.ac;
+
+    if (cpu.x == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.x & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
+    return 0;
+}
+
+static uint8_t TAY(void) {
+    cpu.y = cpu.ac;
+
+    if (cpu.y == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.y & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
     return 0;
 }
 
 static uint8_t TSX(void) {
+    cpu.x = cpu.sp;
+
+    if (cpu.x == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.x & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
     return 0;
 }
 
@@ -502,6 +628,10 @@ struct instruction lookup[256] = {
         { "BEQ", &BEQ, &REL, 2 },{ "SBC", &SBC, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ZPX, 4 },{ "INC", &INC, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SED", &SED, &IMP, 2 },{ "SBC", &SBC, &ABY, 4 },{ "NOP", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ABX, 4 },{ "INC", &INC, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
 };
 
+static void fetch(void) {
+    if (lookup[op].mode != &IMP) fetched = cpu_fetch(addr_abs);
+}
+
 /**
  * inst_exec: Parse and execute a fetched instruction
  * @param opcode The retrieved opcode from cpu_exec()
@@ -509,12 +639,15 @@ struct instruction lookup[256] = {
  * @return void
  */
 void inst_exec(uint8_t opcode, uint32_t* cycles) {
-    fetched_ptr = &opcode;
+    // saving the opcode to the global variable "op"
+    op = opcode;
 
     *(cycles) = lookup[opcode].cycles;
 
-    (*(lookup[opcode].mode))();
-    (*(lookup[opcode].op))();
+    uint8_t additional_cycle_0 = (*(lookup[opcode].mode))();
+    uint8_t additional_cycle_1 = (*(lookup[opcode].op))();
+
+    *(cycles) += (additional_cycle_0 & additional_cycle_1);
 
     debug_print("(inst_exec) cycles: %d, %p\n", *(cycles), (void *)cycles);
 }

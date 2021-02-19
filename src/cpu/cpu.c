@@ -82,7 +82,10 @@ void cpu_reset(void) {
  * @param addr The address we want to access
  * @return The retrieved data
  */
-static uint8_t get_mem(uint16_t addr) {
+static int8_t get_mem(uint16_t addr) {
+    // this yields "warning: comparison is always true due to limited range of data type"
+    if (!(addr >= 0x0000 && addr <= 0xFFFF)) return -1;
+
     uint8_t parsed;
 
     // no need to check >= 0x0000, it's unsigned
@@ -100,6 +103,23 @@ static uint8_t get_mem(uint16_t addr) {
     }
 }
 
+static uint8_t write_mem(uint16_t addr, uint8_t data) {
+    // this yields "warning: comparison is always true due to limited range of data type"
+    if (!(addr >= 0x0000 && addr <= 0xFFFF)) return 1;
+
+    if (addr <= 0x00FF) {
+        mem_ptr->zero_page[addr] = data;
+    } else if (addr >= 0x0100 && addr <= 0x01FF) {
+        mem_ptr->stack[addr - 0x0100] = data;
+    } else if (addr >= 0xFFFA) {
+        mem_ptr->last_six[addr - 0xFDFA] = data;
+    } else {
+        mem_ptr->data[addr - 0x0200] = data;
+    }
+
+    return 0;
+}
+
 /**
  * cpu_fetch: Fetch memory from a given address
  * @param void
@@ -112,6 +132,10 @@ uint8_t cpu_fetch(uint16_t addr) {
     return data;
 }
 
+uint8_t cpu_write(uint16_t addr, uint8_t data) {
+    return write_mem(addr, data) == 1 ? 1 : 0;
+}
+
 /**
  * cpu_exec: Execute fetched data (single stepping)
  * @param void
@@ -120,15 +144,20 @@ uint8_t cpu_fetch(uint16_t addr) {
 void cpu_exec() {
     debug_print("(cpu_exec) cycles: %d, mem: %p\n", cycles, (void*)mem_ptr);
 
-    uint8_t fetched;
+    int8_t fetched;
     do {
         debug_print("(loop) cycles: %d\n", cycles);
         // executing in a take
         if (cycles == 0) {
             fetched = cpu_fetch(cpu.pc);
+            if (fetched == -1) goto error;
+
             printf("(cpu_exec) fetched: 0x%X\n", fetched);
             inst_exec(fetched, &cycles);
         }
         cycles--;
     } while (cycles != 0);
+
+    error:
+        printf("(FAILED) Couldn't fetch valid data!\n");
 }
