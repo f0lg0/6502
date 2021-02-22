@@ -22,7 +22,6 @@ uint8_t op = 0x00;
 
 // a pointer to the fetched opcode in the cpu module
 uint8_t fetched = 0x00;
-
 static void fetch(void);
 
 /*
@@ -286,6 +285,8 @@ static uint8_t LDA(void) {
  * @return 1
  */
 static uint8_t LDX(void) {
+    printf("(LDX) Called LDX.\n");
+
     fetch();
     cpu.x = fetched;
 
@@ -301,6 +302,8 @@ static uint8_t LDX(void) {
 }
 
 static uint8_t LDY(void) {
+    printf("(LDY) Called LDY.\n");
+
     fetch();
     cpu.y = fetched;
 
@@ -373,10 +376,25 @@ static uint8_t BEQ(void) {
 }
 
 static uint8_t ORA(void) {
-    return 0;
+    printf("(ORA) Called ORA.\n");
+
+    fetch();
+    cpu.ac = cpu.ac | fetched;
+
+    if (cpu.ac == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.ac & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
+    return 1;
 }
 
 static uint8_t AND(void) {
+    printf("(AND) Called AND.\n");
+
     fetch();
     cpu.ac = cpu.ac & fetched;
 
@@ -388,10 +406,39 @@ static uint8_t AND(void) {
         cpu_mod_sr(N, 1);
     }
 
-    return 0;
+    return 1;
 }
 
 static uint8_t EOR(void) {
+    printf("(EOR) Called EOR.\n");
+
+    fetch();
+    cpu.ac = cpu.ac ^ fetched;
+
+    if (cpu.ac == 0) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    if (cpu.ac & (1 << 7)) {
+        cpu_mod_sr(N, 1);
+    }
+
+    return 1;
+}
+
+static uint8_t BIT(void) {
+    printf("(BIT) Called BIT.\n");
+
+    fetch();
+    uint16_t tmp = cpu.ac & fetched;
+
+    if ((tmp & 0x00F) == 0x00) {
+        cpu_mod_sr(Z, 1);
+    }
+
+    cpu_mod_sr(N, (fetched & (1 << 7)));
+    cpu_mod_sr(V, (fetched & (1 << 6)));
+
     return 0;
 }
 
@@ -400,16 +447,22 @@ static uint8_t ADC(void) {
 }
 
 static uint8_t STA(void) {
+    printf("(STA) Called STA.\n");
+
     cpu_write(addr_abs, cpu.ac);
     return 0;
 }
 
 static uint8_t STX(void) {
+    printf("(STX) Called STX.\n");
+
     cpu_write(addr_abs, cpu.x);
     return 0;
 }
 
 static uint8_t STY(void) {
+    printf("(STY) Called STY.\n");
+
     cpu_write(addr_abs, cpu.y);
     return 0;
 }
@@ -419,10 +472,6 @@ static uint8_t CMP(void) {
 }
 
 static uint8_t SBC(void) {
-    return 0;
-}
-
-static uint8_t BIT(void) {
     return 0;
 }
 
@@ -451,6 +500,8 @@ static uint8_t INC(void) {
 }
 
 static uint8_t PHP(void) {
+    printf("(PHP) Called PHP.\n");
+
     cpu_write(0x0100 + cpu.sp, cpu.sr);
     cpu.sp--;
 
@@ -466,6 +517,8 @@ static uint8_t CLC(void) {
 }
 
 static uint8_t PLP(void) {
+    printf("(PLP) Called PLP.\n");
+
     cpu.sp++;
     cpu.sr = cpu_fetch(0x0100 + cpu.sp);
 
@@ -473,6 +526,8 @@ static uint8_t PLP(void) {
 }
 
 static uint8_t PLA(void) {
+    printf("(PLA) Called PLA.\n");
+
     cpu.sp++;
     cpu.ac = cpu_fetch(0x0100 + cpu.sp);
 
@@ -488,6 +543,8 @@ static uint8_t PLA(void) {
 }
 
 static uint8_t PHA(void) {
+    printf("(PHA) Called PHA.\n");
+
     // 0x0100 is the starting addr of the stack
     cpu_write(0x0100 + cpu.sp, cpu.ac);
     cpu.sp--;
@@ -508,6 +565,8 @@ static uint8_t DEY(void) {
 }
 
 static uint8_t TYA(void) {
+    printf("(TYA) Called TYA.\n");
+
     cpu.ac = cpu.y;
 
     if (cpu.ac == 0) {
@@ -540,6 +599,8 @@ static uint8_t SED(void) {
 }
 
 static uint8_t TXA(void) {
+    printf("(TXA) Called TXA.\n");
+
     cpu.ac = cpu.x;
 
     if (cpu.ac == 0) {
@@ -554,11 +615,15 @@ static uint8_t TXA(void) {
 }
 
 static uint8_t TXS(void) {
+    printf("(TXS) Called TXS.\n");
+
     cpu.sp = cpu.x;
     return 0;
 }
 
 static uint8_t TAX(void) {
+    printf("(TXA) Called TXA.\n");
+
     cpu.x = cpu.ac;
 
     if (cpu.x == 0) {
@@ -573,6 +638,8 @@ static uint8_t TAX(void) {
 }
 
 static uint8_t TAY(void) {
+    printf("(TAY) Called TAY.\n");
+
     cpu.y = cpu.ac;
 
     if (cpu.y == 0) {
@@ -587,6 +654,8 @@ static uint8_t TAY(void) {
 }
 
 static uint8_t TSX(void) {
+    printf("(TSX) Called TSX.\n");
+
     cpu.x = cpu.sp;
 
     if (cpu.x == 0) {
