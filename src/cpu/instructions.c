@@ -443,7 +443,23 @@ static uint8_t BIT(void) {
 }
 
 static uint8_t ADC(void) {
-    return 0;
+    fetch();
+
+    uint16_t tmp = (uint16_t)cpu.ac + (uint16_t)fetched + (uint16_t)cpu_extract_sr(C);
+    if (tmp > 255)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0)
+        cpu_mod_sr(Z, 1);
+
+    if ((~((uint16_t)cpu.ac ^ (uint16_t)fetched) & ((uint16_t)cpu.ac ^ (uint16_t)tmp)) & 0x0080)
+        cpu_mod_sr(V, 1);
+
+    if (tmp % 0x80)
+        cpu_mod_sr(N, 1);
+
+    cpu.ac = tmp & 0x00FF;
+    return 1;
 }
 
 static uint8_t STA(void) {
