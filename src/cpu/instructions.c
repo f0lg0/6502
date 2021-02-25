@@ -3,6 +3,7 @@
  * the same cpu struct.
  *
  * TODO: check for errors on cpu_fetch()
+ * TODO: organize this files in a better way
  */
 
 #include <stdio.h>
@@ -22,7 +23,29 @@ uint8_t op = 0x00;
 
 // a pointer to the fetched opcode in the cpu module
 uint8_t fetched = 0x00;
-static void fetch(void);
+static void fetch(void) {
+    if (lookup[op].mode != &IMP) fetched = cpu_fetch(addr_abs);
+}
+// the populated matrix of opcodes, not a clean solution but it's easily understandable
+struct instruction lookup[256] = {
+        { "BRK", &BRK, &IMM, 7 },{ "ORA", &ORA, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 3 },{ "ORA", &ORA, &ZP0, 3 },{ "ASL", &ASL, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PHP", &PHP, &IMP, 3 },{ "ORA", &ORA, &IMM, 2 },{ "ASL", &ASL, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "???", &NOP, &IMP, 4 },{ "ORA", &ORA, &ABS, 4 },{ "ASL", &ASL, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
+        { "BPL", &BPL, &REL, 2 },{ "ORA", &ORA, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "ORA", &ORA, &ZPX, 4 },{ "ASL", &ASL, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "CLC", &CLC, &IMP, 2 },{ "ORA", &ORA, &ABY, 4 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "ORA", &ORA, &ABX, 4 },{ "ASL", &ASL, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
+        { "JSR", &JSR, &ABS, 6 },{ "AND", &AND, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "BIT", &BIT, &ZP0, 3 },{ "AND", &AND, &ZP0, 3 },{ "ROL", &ROL, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PLP", &PLP, &IMP, 4 },{ "AND", &AND, &IMM, 2 },{ "ROL", &ROL, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "BIT", &BIT, &ABS, 4 },{ "AND", &AND, &ABS, 4 },{ "ROL", &ROL, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
+        { "BMI", &BMI, &REL, 2 },{ "AND", &AND, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "AND", &AND, &ZPX, 4 },{ "ROL", &ROL, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SEC", &SEC, &IMP, 2 },{ "AND", &AND, &ABY, 4 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "AND", &AND, &ABX, 4 },{ "ROL", &ROL, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
+        { "RTI", &RTI, &IMP, 6 },{ "EOR", &EOR, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 3 },{ "EOR", &EOR, &ZP0, 3 },{ "LSR", &LSR, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PHA", &PHA, &IMP, 3 },{ "EOR", &EOR, &IMM, 2 },{ "LSR", &LSR, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "JMP", &JMP, &ABS, 3 },{ "EOR", &EOR, &ABS, 4 },{ "LSR", &LSR, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
+        { "BVC", &BVC, &REL, 2 },{ "EOR", &EOR, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "EOR", &EOR, &ZPX, 4 },{ "LSR", &LSR, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "CLI", &CLI, &IMP, 2 },{ "EOR", &EOR, &ABY, 4 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "EOR", &EOR, &ABX, 4 },{ "LSR", &LSR, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
+        { "RTS", &RTS, &IMP, 6 },{ "ADC", &ADC, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 3 },{ "ADC", &ADC, &ZP0, 3 },{ "ROR", &ROR, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PLA", &PLA, &IMP, 4 },{ "ADC", &ADC, &IMM, 2 },{ "ROR", &ROR, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "JMP", &JMP, &IND, 5 },{ "ADC", &ADC, &ABS, 4 },{ "ROR", &ROR, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
+        { "BVS", &BVS, &REL, 2 },{ "ADC", &ADC, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "ADC", &ADC, &ZPX, 4 },{ "ROR", &ROR, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SEI", &SEI, &IMP, 2 },{ "ADC", &ADC, &ABY, 4 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "ADC", &ADC, &ABX, 4 },{ "ROR", &ROR, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
+        { "???", &NOP, &IMP, 2 },{ "STA", &STA, &IZX, 6 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 6 },{ "STY", &STY, &ZP0, 3 },{ "STA", &STA, &ZP0, 3 },{ "STX", &STX, &ZP0, 3 },{ "???", &XXX, &IMP, 3 },{ "DEY", &DEY, &IMP, 2 },{ "???", &NOP, &IMP, 2 },{ "TXA", &TXA, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "STY", &STY, &ABS, 4 },{ "STA", &STA, &ABS, 4 },{ "STX", &STX, &ABS, 4 },{ "???", &XXX, &IMP, 4 },
+        { "BCC", &BCC, &REL, 2 },{ "STA", &STA, &IZY, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 6 },{ "STY", &STY, &ZPX, 4 },{ "STA", &STA, &ZPX, 4 },{ "STX", &STX, &ZPY, 4 },{ "???", &XXX, &IMP, 4 },{ "TYA", &TYA, &IMP, 2 },{ "STA", &STA, &ABY, 5 },{ "TXS", &TXS, &IMP, 2 },{ "???", &XXX, &IMP, 5 },{ "???", &NOP, &IMP, 5 },{ "STA", &STA, &ABX, 5 },{ "???", &XXX, &IMP, 5 },{ "???", &XXX, &IMP, 5 },
+        { "LDY", &LDY, &IMM, 2 },{ "LDA", &LDA, &IZX, 6 },{ "LDX", &LDX, &IMM, 2 },{ "???", &XXX, &IMP, 6 },{ "LDY", &LDY, &ZP0, 3 },{ "LDA", &LDA, &ZP0, 3 },{ "LDX", &LDX, &ZP0, 3 },{ "???", &XXX, &IMP, 3 },{ "TAY", &TAY, &IMP, 2 },{ "LDA", &LDA, &IMM, 2 },{ "TAX", &TAX, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "LDY", &LDY, &ABS, 4 },{ "LDA", &LDA, &ABS, 4 },{ "LDX", &LDX, &ABS, 4 },{ "???", &XXX, &IMP, 4 },
+        { "BCS", &BCS, &REL, 2 },{ "LDA", &LDA, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 5 },{ "LDY", &LDY, &ZPX, 4 },{ "LDA", &LDA, &ZPX, 4 },{ "LDX", &LDX, &ZPY, 4 },{ "???", &XXX, &IMP, 4 },{ "CLV", &CLV, &IMP, 2 },{ "LDA", &LDA, &ABY, 4 },{ "TSX", &TSX, &IMP, 2 },{ "???", &XXX, &IMP, 4 },{ "LDY", &LDY, &ABX, 4 },{ "LDA", &LDA, &ABX, 4 },{ "LDX", &LDX, &ABY, 4 },{ "???", &XXX, &IMP, 4 },
+        { "CPY", &CPY, &IMM, 2 },{ "CMP", &CMP, &IZX, 6 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "CPY", &CPY, &ZP0, 3 },{ "CMP", &CMP, &ZP0, 3 },{ "DEC", &DEC, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "INY", &INY, &IMP, 2 },{ "CMP", &CMP, &IMM, 2 },{ "DEX", &DEX, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "CPY", &CPY, &ABS, 4 },{ "CMP", &CMP, &ABS, 4 },{ "DEC", &DEC, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
+        { "BNE", &BNE, &REL, 2 },{ "CMP", &CMP, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "CMP", &CMP, &ZPX, 4 },{ "DEC", &DEC, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "CLD", &CLD, &IMP, 2 },{ "CMP", &CMP, &ABY, 4 },{ "NOP", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "CMP", &CMP, &ABX, 4 },{ "DEC", &DEC, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
+        { "CPX", &CPX, &IMM, 2 },{ "SBC", &SBC, &IZX, 6 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "CPX", &CPX, &ZP0, 3 },{ "SBC", &SBC, &ZP0, 3 },{ "INC", &INC, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "INX", &INX, &IMP, 2 },{ "SBC", &SBC, &IMM, 2 },{ "NOP", &NOP, &IMP, 2 },{ "???", &SBC, &IMP, 2 },{ "CPX", &CPX, &ABS, 4 },{ "SBC", &SBC, &ABS, 4 },{ "INC", &INC, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
+        { "BEQ", &BEQ, &REL, 2 },{ "SBC", &SBC, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ZPX, 4 },{ "INC", &INC, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SED", &SED, &IMP, 2 },{ "SBC", &SBC, &ABY, 4 },{ "NOP", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ABX, 4 },{ "INC", &INC, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
+};
+
 
 /*
  * =============================================
@@ -38,7 +61,7 @@ static void fetch(void);
  * @param void
  * @return 0
  */
-static uint8_t IMP(void) {
+uint8_t IMP(void) {
     printf("(MODE) IMP.\n");
 
     fetched = cpu.ac;
@@ -51,7 +74,7 @@ static uint8_t IMP(void) {
  * @param void
  * @return 0
  */
-static uint8_t IMM(void) {
+uint8_t IMM(void) {
     printf("(MODE) IMM.\n");
 
     addr_abs = cpu.pc++;
@@ -66,7 +89,7 @@ static uint8_t IMM(void) {
  * @param void
  * @return 0
  */
-static uint8_t ZP0(void) {
+uint8_t ZP0(void) {
     printf("(MODE) ZP0.\n");
 
     addr_abs = (cpu_fetch(cpu.pc) & 0x00FF);
@@ -78,7 +101,7 @@ static uint8_t ZP0(void) {
  * @param void
  * @return 0
  */
-static uint8_t ZPX(void) {
+uint8_t ZPX(void) {
     printf("(MODE) ZPX.\n");
 
     addr_abs = ((cpu_fetch(cpu.pc) + cpu.x) & 0x00FF);
@@ -90,7 +113,7 @@ static uint8_t ZPX(void) {
  * @param void
  * @return 0
  */
-static uint8_t ZPY(void) {
+uint8_t ZPY(void) {
     printf("(MODE) ZPY.\n");
 
     addr_abs = ((cpu_fetch(cpu.pc) + cpu.y) & 0x00FF);
@@ -102,7 +125,7 @@ static uint8_t ZPY(void) {
  * @param void
  * @return
  */
-static uint8_t ABS(void) {
+uint8_t ABS(void) {
     printf("(MODE) ABS.\n");
 
     uint16_t low = cpu_fetch(cpu.pc);
@@ -118,7 +141,7 @@ static uint8_t ABS(void) {
  * @param void
  * @return 1 if an extra cycles is requires due to page change, 0 if not
  */
-static uint8_t ABX(void) {
+uint8_t ABX(void) {
     printf("(MODE) ABX.\n");
 
     uint16_t low = cpu_fetch(cpu.pc);
@@ -137,7 +160,7 @@ static uint8_t ABX(void) {
  * @param void
  * @return void
  */
-static uint8_t ABY(void) {
+uint8_t ABY(void) {
     printf("(MODE) ABY.\n");
 
     uint16_t low = cpu_fetch(cpu.pc);
@@ -157,7 +180,7 @@ static uint8_t ABY(void) {
  * @param void
  * @return void
  */
-static uint8_t IND(void) {
+uint8_t IND(void) {
     printf("(MODE) IND.\n");
 
     uint16_t low = cpu_fetch(cpu.pc);
@@ -193,7 +216,7 @@ static uint8_t IND(void) {
  * @param void
  * @return void
  */
-static uint8_t IZX(void) {
+uint8_t IZX(void) {
     // reading an address in the zero page
     uint16_t addr_0p = cpu_fetch(cpu.pc);
 
@@ -211,7 +234,7 @@ static uint8_t IZX(void) {
  * @param void
  * @return void
  */
-static uint8_t IZY(void) {
+uint8_t IZY(void) {
     uint16_t addr_0p = cpu_fetch(cpu.pc);
 
     uint16_t low = cpu_fetch(addr_0p & 0x00FF);
@@ -229,7 +252,7 @@ static uint8_t IZY(void) {
  * @param void
  * @return void
  */
-static uint8_t REL(void) {
+uint8_t REL(void) {
     addr_rel = cpu_fetch(cpu.pc);
 
     // reading a single byte to see if it's signed
@@ -251,7 +274,7 @@ static uint8_t REL(void) {
  * @param void
  * @return 0
  */
-static uint8_t XXX(void)  {
+uint8_t XXX(void)  {
     printf("(UNKNOWN) opcode not recognized.\n");
     return 0;
 }
@@ -261,7 +284,7 @@ static uint8_t XXX(void)  {
  * @param void
  * @return 1
  */
-static uint8_t LDA(void) {
+uint8_t LDA(void) {
     printf("(LDA) Called LDA.\n");
 
     fetch();
@@ -284,7 +307,7 @@ static uint8_t LDA(void) {
  * @param void
  * @return 1
  */
-static uint8_t LDX(void) {
+uint8_t LDX(void) {
     printf("(LDX) Called LDX.\n");
 
     fetch();
@@ -301,7 +324,7 @@ static uint8_t LDX(void) {
     return 1;
 }
 
-static uint8_t LDY(void) {
+uint8_t LDY(void) {
     printf("(LDY) Called LDY.\n");
 
     fetch();
@@ -318,64 +341,91 @@ static uint8_t LDY(void) {
     return 1;
 }
 
-static uint8_t BRK(void) {
+uint8_t BRK(void) {
     return 0;
 }
 
-static uint8_t BPL(void) {
+uint8_t BPL(void) {
     return 0;
 }
-static uint8_t JSR(void) {
+uint8_t JSR(void) {
     return 0;
 }
-static uint8_t BMI(void) {
-    return 0;
-}
-
-static uint8_t RTI(void) {
-    return 0;
-}
-static uint8_t BVC(void) {
+uint8_t BMI(void) {
     return 0;
 }
 
-static uint8_t RTS(void) {
+uint8_t RTI(void) {
+    return 0;
+}
+uint8_t BVC(void) {
     return 0;
 }
 
-static uint8_t BVS(void) {
+uint8_t RTS(void) {
     return 0;
 }
 
-static uint8_t NOP(void) {
+uint8_t BVS(void) {
     return 0;
 }
 
-static uint8_t BCC(void) {
+uint8_t NOP(void) {
     return 0;
 }
 
-static uint8_t BCS(void) {
+uint8_t BCC(void) {
     return 0;
 }
 
-static uint8_t CPY(void) {
+uint8_t BCS(void) {
     return 0;
 }
 
-static uint8_t BNE(void) {
+uint8_t BNE(void) {
     return 0;
 }
 
-static uint8_t CPX(void) {
+uint8_t CPX(void) {
+    fetch();
+
+    uint16_t tmp = (uint16_t)cpu.x - (uint16_t)fetched;
+
+    if (cpu.x >= fetched)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0x0000)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
     return 0;
 }
 
-static uint8_t BEQ(void) {
+uint8_t CPY(void) {
+    fetch();
+
+    // comparing (I think this is just beautiful)
+    uint16_t tmp = (uint16_t)cpu.y - (uint16_t)fetched;
+
+    if (cpu.y >= fetched)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0x0000)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
     return 0;
 }
 
-static uint8_t ORA(void) {
+uint8_t BEQ(void) {
+    return 0;
+}
+
+uint8_t ORA(void) {
     printf("(ORA) Called ORA.\n");
 
     fetch();
@@ -392,7 +442,7 @@ static uint8_t ORA(void) {
     return 1;
 }
 
-static uint8_t AND(void) {
+uint8_t AND(void) {
     printf("(AND) Called AND.\n");
 
     fetch();
@@ -409,7 +459,7 @@ static uint8_t AND(void) {
     return 1;
 }
 
-static uint8_t EOR(void) {
+uint8_t EOR(void) {
     printf("(EOR) Called EOR.\n");
 
     fetch();
@@ -426,7 +476,7 @@ static uint8_t EOR(void) {
     return 1;
 }
 
-static uint8_t BIT(void) {
+uint8_t BIT(void) {
     printf("(BIT) Called BIT.\n");
 
     fetch();
@@ -442,7 +492,7 @@ static uint8_t BIT(void) {
     return 0;
 }
 
-static uint8_t ADC(void) {
+uint8_t ADC(void) {
     fetch();
 
     uint16_t tmp = (uint16_t)cpu.ac + (uint16_t)fetched + (uint16_t)cpu_extract_sr(C);
@@ -455,67 +505,188 @@ static uint8_t ADC(void) {
     if ((~((uint16_t)cpu.ac ^ (uint16_t)fetched) & ((uint16_t)cpu.ac ^ (uint16_t)tmp)) & 0x0080)
         cpu_mod_sr(V, 1);
 
-    if (tmp % 0x80)
+    if (tmp & 0x0080)
         cpu_mod_sr(N, 1);
 
     cpu.ac = tmp & 0x00FF;
     return 1;
 }
 
-static uint8_t STA(void) {
+uint8_t STA(void) {
     printf("(STA) Called STA.\n");
 
     cpu_write(addr_abs, cpu.ac);
     return 0;
 }
 
-static uint8_t STX(void) {
+uint8_t STX(void) {
     printf("(STX) Called STX.\n");
 
     cpu_write(addr_abs, cpu.x);
     return 0;
 }
 
-static uint8_t STY(void) {
+uint8_t STY(void) {
     printf("(STY) Called STY.\n");
 
     cpu_write(addr_abs, cpu.y);
     return 0;
 }
 
-static uint8_t CMP(void) {
+uint8_t CMP(void) {
+    fetch();
+
+    // comparing (I think this is just beautiful)
+    uint16_t tmp = (uint16_t)cpu.ac - (uint16_t)fetched;
+
+    if (cpu.ac >= fetched)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0x0000)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
+    return 1;
+}
+
+uint8_t SBC(void) {
+    fetch();
+
+    // inverting the bottom 8 bits
+    uint16_t val = ((uint16_t)fetched) ^ 0x00FF;
+
+    uint16_t tmp = (uint16_t)cpu.ac + val + (uint16_t)cpu_extract_sr(C);
+    if (tmp & 0xFF00)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0)
+        cpu_mod_sr(Z, 1);
+
+    if ((tmp ^ (uint16_t)cpu.ac) & (tmp ^ val) & 0x0080)
+        cpu_mod_sr(V, 1);
+
+    if (tmp & 0x0080)
+        cpu_mod_sr(N, 1);
+
+    cpu.ac = tmp & 0x00FF;
+    return 1;
+}
+
+uint8_t ASL(void) {
+    fetch();
+    uint16_t tmp = (uint16_t)fetched << 1;
+
+    if ((tmp & 0xFF00) > 0)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0x00)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
+    if (lookup[op].mode == &IMP) {
+        cpu.ac = tmp & 0x00FF;
+    } else {
+        cpu_write(addr_abs, tmp & 0x00FF);
+    }
+
     return 0;
 }
 
-static uint8_t SBC(void) {
+uint8_t ROL(void) {
     return 0;
 }
 
-static uint8_t ASL(void) {
+uint8_t LSR(void) {
     return 0;
 }
 
-static uint8_t ROL(void) {
+uint8_t ROR(void) {
     return 0;
 }
 
-static uint8_t LSR(void) {
+uint8_t DEC(void) {
+    fetch();
+    uint16_t tmp = fetched - 1;
+
+    cpu_write(addr_abs, tmp & 0x00FF);
+
+    if ((tmp & 0x00FF) == 0x0000)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
     return 0;
 }
 
-static uint8_t ROR(void) {
+uint8_t DEX(void) {
+    cpu.x++;
+
+    if (cpu.x == 0x0000)
+        cpu_mod_sr(Z, 1);
+
+    if (cpu.x & (1 << 7))
+        cpu_mod_sr(N, 1);
+
     return 0;
 }
 
-static uint8_t DEC(void) {
+uint8_t DEY(void) {
+    cpu.y++;
+
+    if (cpu.y == 0x0000)
+        cpu_mod_sr(Z, 1);
+
+    if (cpu.y & (1 << 7))
+        cpu_mod_sr(N, 1);
+
     return 0;
 }
 
-static uint8_t INC(void) {
+uint8_t INC(void) {
+    fetch();
+    uint16_t tmp = (uint16_t)fetched + 1;
+
+    cpu_write(addr_abs, tmp & 0x00FF);
+
+    if ((tmp & 0x00FF) == 0x0000)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
     return 0;
 }
 
-static uint8_t PHP(void) {
+uint8_t INX(void) {
+    cpu.x++;
+
+    if (cpu.x == 0x00)
+        cpu_mod_sr(Z, 1);
+
+    if (cpu.x & (1 << 7))
+        cpu_mod_sr(N, 1);
+
+    return 0;
+}
+
+uint8_t INY(void) {
+    cpu.y++;
+
+    if (cpu.y == 0x00)
+        cpu_mod_sr(Z, 1);
+
+    if (cpu.y & (1 << 7))
+        cpu_mod_sr(N, 1);
+
+    return 0;
+}
+
+uint8_t PHP(void) {
     printf("(PHP) Called PHP.\n");
 
     cpu_write(0x0100 + cpu.sp, cpu.sr);
@@ -524,15 +695,15 @@ static uint8_t PHP(void) {
     return 0;
 }
 
-static uint8_t SEC(void) {
+uint8_t SEC(void) {
     return 0;
 }
 
-static uint8_t CLC(void) {
+uint8_t CLC(void) {
     return 0;
 }
 
-static uint8_t PLP(void) {
+uint8_t PLP(void) {
     printf("(PLP) Called PLP.\n");
 
     cpu.sp++;
@@ -541,7 +712,7 @@ static uint8_t PLP(void) {
     return 0;
 }
 
-static uint8_t PLA(void) {
+uint8_t PLA(void) {
     printf("(PLA) Called PLA.\n");
 
     cpu.sp++;
@@ -558,7 +729,7 @@ static uint8_t PLA(void) {
     return 0;
 }
 
-static uint8_t PHA(void) {
+uint8_t PHA(void) {
     printf("(PHA) Called PHA.\n");
 
     // 0x0100 is the starting addr of the stack
@@ -568,19 +739,15 @@ static uint8_t PHA(void) {
     return 0;
 }
 
-static uint8_t CLI(void) {
+uint8_t CLI(void) {
     return 0;
 }
 
-static uint8_t SEI(void) {
+uint8_t SEI(void) {
     return 0;
 }
 
-static uint8_t DEY(void) {
-    return 0;
-}
-
-static uint8_t TYA(void) {
+uint8_t TYA(void) {
     printf("(TYA) Called TYA.\n");
 
     cpu.ac = cpu.y;
@@ -595,26 +762,19 @@ static uint8_t TYA(void) {
     return 0;
 }
 
-static uint8_t CLV(void) {
+uint8_t CLV(void) {
     return 0;
 }
 
-static uint8_t INY(void) {
+uint8_t CLD(void) {
     return 0;
 }
 
-static uint8_t CLD(void) {
+uint8_t SED(void) {
     return 0;
 }
 
-static uint8_t INX(void) {
-    return 0;
-}
-static uint8_t SED(void) {
-    return 0;
-}
-
-static uint8_t TXA(void) {
+uint8_t TXA(void) {
     printf("(TXA) Called TXA.\n");
 
     cpu.ac = cpu.x;
@@ -630,14 +790,14 @@ static uint8_t TXA(void) {
     return 0;
 }
 
-static uint8_t TXS(void) {
+uint8_t TXS(void) {
     printf("(TXS) Called TXS.\n");
 
     cpu.sp = cpu.x;
     return 0;
 }
 
-static uint8_t TAX(void) {
+uint8_t TAX(void) {
     printf("(TXA) Called TXA.\n");
 
     cpu.x = cpu.ac;
@@ -653,7 +813,7 @@ static uint8_t TAX(void) {
     return 0;
 }
 
-static uint8_t TAY(void) {
+uint8_t TAY(void) {
     printf("(TAY) Called TAY.\n");
 
     cpu.y = cpu.ac;
@@ -669,7 +829,7 @@ static uint8_t TAY(void) {
     return 0;
 }
 
-static uint8_t TSX(void) {
+uint8_t TSX(void) {
     printf("(TSX) Called TSX.\n");
 
     cpu.x = cpu.sp;
@@ -685,36 +845,8 @@ static uint8_t TSX(void) {
     return 0;
 }
 
-static uint8_t DEX(void) {
+uint8_t JMP(void) {
     return 0;
-}
-
-static uint8_t JMP(void) {
-    return 0;
-}
-
-// the populated matrix of opcodes, not a clean solution but it's easily understandable
-struct instruction lookup[256] = {
-        { "BRK", &BRK, &IMM, 7 },{ "ORA", &ORA, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 3 },{ "ORA", &ORA, &ZP0, 3 },{ "ASL", &ASL, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PHP", &PHP, &IMP, 3 },{ "ORA", &ORA, &IMM, 2 },{ "ASL", &ASL, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "???", &NOP, &IMP, 4 },{ "ORA", &ORA, &ABS, 4 },{ "ASL", &ASL, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
-        { "BPL", &BPL, &REL, 2 },{ "ORA", &ORA, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "ORA", &ORA, &ZPX, 4 },{ "ASL", &ASL, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "CLC", &CLC, &IMP, 2 },{ "ORA", &ORA, &ABY, 4 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "ORA", &ORA, &ABX, 4 },{ "ASL", &ASL, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
-        { "JSR", &JSR, &ABS, 6 },{ "AND", &AND, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "BIT", &BIT, &ZP0, 3 },{ "AND", &AND, &ZP0, 3 },{ "ROL", &ROL, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PLP", &PLP, &IMP, 4 },{ "AND", &AND, &IMM, 2 },{ "ROL", &ROL, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "BIT", &BIT, &ABS, 4 },{ "AND", &AND, &ABS, 4 },{ "ROL", &ROL, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
-        { "BMI", &BMI, &REL, 2 },{ "AND", &AND, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "AND", &AND, &ZPX, 4 },{ "ROL", &ROL, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SEC", &SEC, &IMP, 2 },{ "AND", &AND, &ABY, 4 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "AND", &AND, &ABX, 4 },{ "ROL", &ROL, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
-        { "RTI", &RTI, &IMP, 6 },{ "EOR", &EOR, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 3 },{ "EOR", &EOR, &ZP0, 3 },{ "LSR", &LSR, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PHA", &PHA, &IMP, 3 },{ "EOR", &EOR, &IMM, 2 },{ "LSR", &LSR, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "JMP", &JMP, &ABS, 3 },{ "EOR", &EOR, &ABS, 4 },{ "LSR", &LSR, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
-        { "BVC", &BVC, &REL, 2 },{ "EOR", &EOR, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "EOR", &EOR, &ZPX, 4 },{ "LSR", &LSR, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "CLI", &CLI, &IMP, 2 },{ "EOR", &EOR, &ABY, 4 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "EOR", &EOR, &ABX, 4 },{ "LSR", &LSR, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
-        { "RTS", &RTS, &IMP, 6 },{ "ADC", &ADC, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 3 },{ "ADC", &ADC, &ZP0, 3 },{ "ROR", &ROR, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PLA", &PLA, &IMP, 4 },{ "ADC", &ADC, &IMM, 2 },{ "ROR", &ROR, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "JMP", &JMP, &IND, 5 },{ "ADC", &ADC, &ABS, 4 },{ "ROR", &ROR, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
-        { "BVS", &BVS, &REL, 2 },{ "ADC", &ADC, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "ADC", &ADC, &ZPX, 4 },{ "ROR", &ROR, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SEI", &SEI, &IMP, 2 },{ "ADC", &ADC, &ABY, 4 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "ADC", &ADC, &ABX, 4 },{ "ROR", &ROR, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
-        { "???", &NOP, &IMP, 2 },{ "STA", &STA, &IZX, 6 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 6 },{ "STY", &STY, &ZP0, 3 },{ "STA", &STA, &ZP0, 3 },{ "STX", &STX, &ZP0, 3 },{ "???", &XXX, &IMP, 3 },{ "DEY", &DEY, &IMP, 2 },{ "???", &NOP, &IMP, 2 },{ "TXA", &TXA, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "STY", &STY, &ABS, 4 },{ "STA", &STA, &ABS, 4 },{ "STX", &STX, &ABS, 4 },{ "???", &XXX, &IMP, 4 },
-        { "BCC", &BCC, &REL, 2 },{ "STA", &STA, &IZY, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 6 },{ "STY", &STY, &ZPX, 4 },{ "STA", &STA, &ZPX, 4 },{ "STX", &STX, &ZPY, 4 },{ "???", &XXX, &IMP, 4 },{ "TYA", &TYA, &IMP, 2 },{ "STA", &STA, &ABY, 5 },{ "TXS", &TXS, &IMP, 2 },{ "???", &XXX, &IMP, 5 },{ "???", &NOP, &IMP, 5 },{ "STA", &STA, &ABX, 5 },{ "???", &XXX, &IMP, 5 },{ "???", &XXX, &IMP, 5 },
-        { "LDY", &LDY, &IMM, 2 },{ "LDA", &LDA, &IZX, 6 },{ "LDX", &LDX, &IMM, 2 },{ "???", &XXX, &IMP, 6 },{ "LDY", &LDY, &ZP0, 3 },{ "LDA", &LDA, &ZP0, 3 },{ "LDX", &LDX, &ZP0, 3 },{ "???", &XXX, &IMP, 3 },{ "TAY", &TAY, &IMP, 2 },{ "LDA", &LDA, &IMM, 2 },{ "TAX", &TAX, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "LDY", &LDY, &ABS, 4 },{ "LDA", &LDA, &ABS, 4 },{ "LDX", &LDX, &ABS, 4 },{ "???", &XXX, &IMP, 4 },
-        { "BCS", &BCS, &REL, 2 },{ "LDA", &LDA, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 5 },{ "LDY", &LDY, &ZPX, 4 },{ "LDA", &LDA, &ZPX, 4 },{ "LDX", &LDX, &ZPY, 4 },{ "???", &XXX, &IMP, 4 },{ "CLV", &CLV, &IMP, 2 },{ "LDA", &LDA, &ABY, 4 },{ "TSX", &TSX, &IMP, 2 },{ "???", &XXX, &IMP, 4 },{ "LDY", &LDY, &ABX, 4 },{ "LDA", &LDA, &ABX, 4 },{ "LDX", &LDX, &ABY, 4 },{ "???", &XXX, &IMP, 4 },
-        { "CPY", &CPY, &IMM, 2 },{ "CMP", &CMP, &IZX, 6 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "CPY", &CPY, &ZP0, 3 },{ "CMP", &CMP, &ZP0, 3 },{ "DEC", &DEC, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "INY", &INY, &IMP, 2 },{ "CMP", &CMP, &IMM, 2 },{ "DEX", &DEX, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "CPY", &CPY, &ABS, 4 },{ "CMP", &CMP, &ABS, 4 },{ "DEC", &DEC, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
-        { "BNE", &BNE, &REL, 2 },{ "CMP", &CMP, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "CMP", &CMP, &ZPX, 4 },{ "DEC", &DEC, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "CLD", &CLD, &IMP, 2 },{ "CMP", &CMP, &ABY, 4 },{ "NOP", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "CMP", &CMP, &ABX, 4 },{ "DEC", &DEC, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
-        { "CPX", &CPX, &IMM, 2 },{ "SBC", &SBC, &IZX, 6 },{ "???", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "CPX", &CPX, &ZP0, 3 },{ "SBC", &SBC, &ZP0, 3 },{ "INC", &INC, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "INX", &INX, &IMP, 2 },{ "SBC", &SBC, &IMM, 2 },{ "NOP", &NOP, &IMP, 2 },{ "???", &SBC, &IMP, 2 },{ "CPX", &CPX, &ABS, 4 },{ "SBC", &SBC, &ABS, 4 },{ "INC", &INC, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
-        { "BEQ", &BEQ, &REL, 2 },{ "SBC", &SBC, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ZPX, 4 },{ "INC", &INC, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SED", &SED, &IMP, 2 },{ "SBC", &SBC, &ABY, 4 },{ "NOP", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ABX, 4 },{ "INC", &INC, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
-};
-
-static void fetch(void) {
-    if (lookup[op].mode != &IMP) fetched = cpu_fetch(addr_abs);
 }
 
 /**
