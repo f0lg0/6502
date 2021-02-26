@@ -3,7 +3,7 @@
  * the same cpu struct.
  *
  * TODO: check for errors on cpu_fetch()
- * TODO: organize this files in a better way
+ * TODO: organize these files in a better way
  */
 
 #include <stdio.h>
@@ -13,19 +13,6 @@
 #include "cpu.h"
 #include "../utils/misc.h"
 
-// absolute address in memory
-uint16_t addr_abs = 0x0000;
-
-// relative address in memory
-uint16_t addr_rel = 0x0000;
-
-uint8_t op = 0x00;
-
-// a pointer to the fetched opcode in the cpu module
-uint8_t fetched = 0x00;
-static void fetch(void) {
-    if (lookup[op].mode != &IMP) fetched = cpu_fetch(addr_abs);
-}
 // the populated matrix of opcodes, not a clean solution but it's easily understandable
 struct instruction lookup[256] = {
         { "BRK", &BRK, &IMM, 7 },{ "ORA", &ORA, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 3 },{ "ORA", &ORA, &ZP0, 3 },{ "ASL", &ASL, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PHP", &PHP, &IMP, 3 },{ "ORA", &ORA, &IMM, 2 },{ "ASL", &ASL, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "???", &NOP, &IMP, 4 },{ "ORA", &ORA, &ABS, 4 },{ "ASL", &ASL, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
@@ -46,6 +33,19 @@ struct instruction lookup[256] = {
         { "BEQ", &BEQ, &REL, 2 },{ "SBC", &SBC, &IZY, 5 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ZPX, 4 },{ "INC", &INC, &ZPX, 6 },{ "???", &XXX, &IMP, 6 },{ "SED", &SED, &IMP, 2 },{ "SBC", &SBC, &ABY, 4 },{ "NOP", &NOP, &IMP, 2 },{ "???", &XXX, &IMP, 7 },{ "???", &NOP, &IMP, 4 },{ "SBC", &SBC, &ABX, 4 },{ "INC", &INC, &ABX, 7 },{ "???", &XXX, &IMP, 7 },
 };
 
+// absolute address in memory
+uint16_t addr_abs = 0x0000;
+
+// relative address in memory
+uint16_t addr_rel = 0x0000;
+
+uint8_t op = 0x00;
+
+// a pointer to the fetched opcode in the cpu module
+uint8_t fetched = 0x00;
+static void fetch(void) {
+    if (lookup[op].mode != &IMP) fetched = cpu_fetch(addr_abs);
+}
 
 /*
  * =============================================
@@ -597,14 +597,68 @@ uint8_t ASL(void) {
 }
 
 uint8_t ROL(void) {
-    return 0;
-}
+    fetch();
+    uint16_t tmp = (uint16_t)(fetched << 1) | cpu_extract_sr(C);
 
-uint8_t LSR(void) {
+    if (tmp & 0xFF00)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0x00)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
+    if (lookup[op].mode == &IMP) {
+        cpu.ac = tmp & 0x00FF;
+    } else {
+        cpu_write(addr_abs, tmp & 0x00FF);
+    }
+
     return 0;
 }
 
 uint8_t ROR(void) {
+    fetch();
+    uint16_t tmp = (uint16_t)(cpu_extract_sr(C) << 7) | (fetched >> 1);
+
+    if (fetched & 0x01)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0x00)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
+    if (lookup[op].mode == &IMP) {
+        cpu.ac = tmp & 0x00FF;
+    } else {
+        cpu_write(addr_abs, tmp & 0x00FF);
+    }
+
+    return 0;
+}
+
+uint8_t LSR(void) {
+    fetch();
+    uint16_t tmp = (uint16_t)fetched >> 1;
+
+    if (fetched & 0x0001)
+        cpu_mod_sr(C, 1);
+
+    if ((tmp & 0x00FF) == 0x00)
+        cpu_mod_sr(Z, 1);
+
+    if (tmp & (1 << 7))
+        cpu_mod_sr(N, 1);
+
+    if (lookup[op].mode == &IMP) {
+        cpu.ac = tmp & 0x00FF;
+    } else {
+        cpu_write(addr_abs, tmp & 0x00FF);
+    }
+
     return 0;
 }
 
