@@ -103,6 +103,12 @@ static int8_t get_mem(uint16_t addr) {
     }
 }
 
+/**
+ * write_mem: Write bytes to a given address
+ * @param addr The location in memory where to write to
+ * @param data The data to be written
+ * @return 0 if success, 1 if failure
+ */
 static uint8_t write_mem(uint16_t addr, uint8_t data) {
     // this yields "warning: comparison is always true due to limited range of data type"
     if (!(addr >= 0x0000 && addr <= 0xFFFF)) return 1;
@@ -132,6 +138,12 @@ uint8_t cpu_fetch(uint16_t addr) {
     return data;
 }
 
+/**
+ * cpu_write: Wrapper for write_mem()
+ * @param addr The address to be written to
+ * @param data The data to be written
+ * @return 0 if success, 1 if failure
+ */
 uint8_t cpu_write(uint16_t addr, uint8_t data) {
     return write_mem(addr, data) == 1 ? 1 : 0;
 }

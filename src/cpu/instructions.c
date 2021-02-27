@@ -3,7 +3,6 @@
  * the same cpu struct.
  *
  * TODO: check for errors on cpu_fetch()
- * TODO: organize these files in a better way
  */
 
 #include <stdio.h>
@@ -407,6 +406,11 @@ static uint8_t LDX(void) {
     return 1;
 }
 
+/**
+ * LDY: Load Y register
+ * @param void
+ * @return 1
+ */
 static uint8_t LDY(void) {
     printf("(LDY) Called LDY.\n");
 
@@ -469,9 +473,15 @@ static uint8_t BNE(void) {
     return 0;
 }
 
+/**
+ * CPX: Compare a value in mem to the X register
+ * @param void
+ * @return 0
+ */
 static uint8_t CPX(void) {
     fetch();
 
+    // comparing (I think this is just beautiful)
     uint16_t tmp = (uint16_t)cpu.x - (uint16_t)fetched;
 
     if (cpu.x >= fetched)
@@ -486,10 +496,14 @@ static uint8_t CPX(void) {
     return 0;
 }
 
+/**
+ * CPY: Compare a value in mem to the Y register
+ * @param void
+ * @return 0
+ */
 static uint8_t CPY(void) {
     fetch();
 
-    // comparing (I think this is just beautiful)
     uint16_t tmp = (uint16_t)cpu.y - (uint16_t)fetched;
 
     if (cpu.y >= fetched)
@@ -508,6 +522,11 @@ static uint8_t BEQ(void) {
     return 0;
 }
 
+/**
+ * ORA: OR bitwise op on the AC register with a fetched mem value
+ * @param void
+ * @return 1
+ */
 static uint8_t ORA(void) {
     printf("(ORA) Called ORA.\n");
 
@@ -525,6 +544,11 @@ static uint8_t ORA(void) {
     return 1;
 }
 
+/**
+ * AND: AND bitwise op on the AC register with a fetched mem value
+ * @param void
+ * @return 1
+ */
 static uint8_t AND(void) {
     printf("(AND) Called AND.\n");
 
@@ -542,6 +566,11 @@ static uint8_t AND(void) {
     return 1;
 }
 
+/**
+ * EOR: XOR bitwise op on the AC register with a fetched mem value
+ * @param void
+ * @return 1
+ */
 static uint8_t EOR(void) {
     printf("(EOR) Called EOR.\n");
 
