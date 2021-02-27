@@ -13,6 +13,89 @@
 #include "cpu.h"
 #include "../utils/misc.h"
 
+/*
+ * =============================================
+ * MODES PROTOTYPES
+ * =============================================
+ */
+
+static uint8_t IMP(void);
+static uint8_t IMM(void);
+static uint8_t ZP0(void);
+static uint8_t ZPX(void);
+static uint8_t ZPY(void);
+static uint8_t ABS(void);
+static uint8_t ABX(void);
+static uint8_t ABY(void);
+static uint8_t IND(void);
+static uint8_t IZX(void);
+static uint8_t IZY(void);
+static uint8_t REL(void);
+
+/*
+ * =============================================
+ * OPERATIONS PROTOTYPES
+ * =============================================
+ */
+
+static uint8_t XXX(void);
+static uint8_t LDA(void);
+static uint8_t LDX(void);
+static uint8_t LDY(void);
+static uint8_t BRK(void);
+static uint8_t BPL(void);
+static uint8_t JSR(void);
+static uint8_t BMI(void);
+static uint8_t RTI(void);
+static uint8_t BVC(void);
+static uint8_t RTS(void);
+static uint8_t BVS(void);
+static uint8_t NOP(void);
+static uint8_t BCC(void);
+static uint8_t BCS(void);
+static uint8_t BNE(void);
+static uint8_t CPX(void);
+static uint8_t CPY(void);
+static uint8_t BEQ(void);
+static uint8_t ORA(void);
+static uint8_t AND(void);
+static uint8_t EOR(void);
+static uint8_t BIT(void);
+static uint8_t ADC(void);
+static uint8_t STA(void);
+static uint8_t STX(void);
+static uint8_t STY(void);
+static uint8_t CMP(void);
+static uint8_t SBC(void);
+static uint8_t ASL(void);
+static uint8_t ROL(void);
+static uint8_t LSR(void);
+static uint8_t ROR(void);
+static uint8_t DEC(void);
+static uint8_t DEX(void);
+static uint8_t DEY(void);
+static uint8_t INC(void);
+static uint8_t INX(void);
+static uint8_t INY(void);
+static uint8_t PHP(void);
+static uint8_t SEC(void);
+static uint8_t CLC(void);
+static uint8_t CLI(void);
+static uint8_t PLP(void);
+static uint8_t PLA(void);
+static uint8_t PHA(void);
+static uint8_t SEI(void);
+static uint8_t TYA(void);
+static uint8_t CLV(void);
+static uint8_t CLD(void);
+static uint8_t SED(void);
+static uint8_t TXA(void);
+static uint8_t TXS(void);
+static uint8_t TAX(void);
+static uint8_t TAY(void);
+static uint8_t TSX(void);
+static uint8_t JMP(void);
+
 // the populated matrix of opcodes, not a clean solution but it's easily understandable
 struct instruction lookup[256] = {
         { "BRK", &BRK, &IMM, 7 },{ "ORA", &ORA, &IZX, 6 },{ "???", &XXX, &IMP, 2 },{ "???", &XXX, &IMP, 8 },{ "???", &NOP, &IMP, 3 },{ "ORA", &ORA, &ZP0, 3 },{ "ASL", &ASL, &ZP0, 5 },{ "???", &XXX, &IMP, 5 },{ "PHP", &PHP, &IMP, 3 },{ "ORA", &ORA, &IMM, 2 },{ "ASL", &ASL, &IMP, 2 },{ "???", &XXX, &IMP, 2 },{ "???", &NOP, &IMP, 4 },{ "ORA", &ORA, &ABS, 4 },{ "ASL", &ASL, &ABS, 6 },{ "???", &XXX, &IMP, 6 },
@@ -61,7 +144,7 @@ static void fetch(void) {
  * @param void
  * @return 0
  */
-uint8_t IMP(void) {
+static uint8_t IMP(void) {
     printf("(MODE) IMP.\n");
 
     fetched = cpu.ac;
@@ -74,7 +157,7 @@ uint8_t IMP(void) {
  * @param void
  * @return 0
  */
-uint8_t IMM(void) {
+static uint8_t IMM(void) {
     printf("(MODE) IMM.\n");
 
     addr_abs = cpu.pc++;
@@ -89,7 +172,7 @@ uint8_t IMM(void) {
  * @param void
  * @return 0
  */
-uint8_t ZP0(void) {
+static uint8_t ZP0(void) {
     printf("(MODE) ZP0.\n");
 
     addr_abs = (cpu_fetch(cpu.pc) & 0x00FF);
@@ -101,7 +184,7 @@ uint8_t ZP0(void) {
  * @param void
  * @return 0
  */
-uint8_t ZPX(void) {
+static uint8_t ZPX(void) {
     printf("(MODE) ZPX.\n");
 
     addr_abs = ((cpu_fetch(cpu.pc) + cpu.x) & 0x00FF);
@@ -113,7 +196,7 @@ uint8_t ZPX(void) {
  * @param void
  * @return 0
  */
-uint8_t ZPY(void) {
+static uint8_t ZPY(void) {
     printf("(MODE) ZPY.\n");
 
     addr_abs = ((cpu_fetch(cpu.pc) + cpu.y) & 0x00FF);
@@ -125,7 +208,7 @@ uint8_t ZPY(void) {
  * @param void
  * @return
  */
-uint8_t ABS(void) {
+static uint8_t ABS(void) {
     printf("(MODE) ABS.\n");
 
     uint16_t low = cpu_fetch(cpu.pc);
@@ -141,7 +224,7 @@ uint8_t ABS(void) {
  * @param void
  * @return 1 if an extra cycles is requires due to page change, 0 if not
  */
-uint8_t ABX(void) {
+static uint8_t ABX(void) {
     printf("(MODE) ABX.\n");
 
     uint16_t low = cpu_fetch(cpu.pc);
@@ -160,7 +243,7 @@ uint8_t ABX(void) {
  * @param void
  * @return void
  */
-uint8_t ABY(void) {
+static uint8_t ABY(void) {
     printf("(MODE) ABY.\n");
 
     uint16_t low = cpu_fetch(cpu.pc);
@@ -180,7 +263,7 @@ uint8_t ABY(void) {
  * @param void
  * @return void
  */
-uint8_t IND(void) {
+static uint8_t IND(void) {
     printf("(MODE) IND.\n");
 
     uint16_t low = cpu_fetch(cpu.pc);
@@ -216,7 +299,7 @@ uint8_t IND(void) {
  * @param void
  * @return void
  */
-uint8_t IZX(void) {
+static uint8_t IZX(void) {
     // reading an address in the zero page
     uint16_t addr_0p = cpu_fetch(cpu.pc);
 
@@ -234,7 +317,7 @@ uint8_t IZX(void) {
  * @param void
  * @return void
  */
-uint8_t IZY(void) {
+static uint8_t IZY(void) {
     uint16_t addr_0p = cpu_fetch(cpu.pc);
 
     uint16_t low = cpu_fetch(addr_0p & 0x00FF);
@@ -252,7 +335,7 @@ uint8_t IZY(void) {
  * @param void
  * @return void
  */
-uint8_t REL(void) {
+static uint8_t REL(void) {
     addr_rel = cpu_fetch(cpu.pc);
 
     // reading a single byte to see if it's signed
@@ -274,7 +357,7 @@ uint8_t REL(void) {
  * @param void
  * @return 0
  */
-uint8_t XXX(void)  {
+static uint8_t XXX(void)  {
     printf("(UNKNOWN) opcode not recognized.\n");
     return 0;
 }
@@ -284,7 +367,7 @@ uint8_t XXX(void)  {
  * @param void
  * @return 1
  */
-uint8_t LDA(void) {
+static uint8_t LDA(void) {
     printf("(LDA) Called LDA.\n");
 
     fetch();
@@ -307,7 +390,7 @@ uint8_t LDA(void) {
  * @param void
  * @return 1
  */
-uint8_t LDX(void) {
+static uint8_t LDX(void) {
     printf("(LDX) Called LDX.\n");
 
     fetch();
@@ -324,7 +407,7 @@ uint8_t LDX(void) {
     return 1;
 }
 
-uint8_t LDY(void) {
+static uint8_t LDY(void) {
     printf("(LDY) Called LDY.\n");
 
     fetch();
@@ -341,52 +424,52 @@ uint8_t LDY(void) {
     return 1;
 }
 
-uint8_t BRK(void) {
+static uint8_t BRK(void) {
     return 0;
 }
 
-uint8_t BPL(void) {
+static uint8_t BPL(void) {
     return 0;
 }
-uint8_t JSR(void) {
+static uint8_t JSR(void) {
     return 0;
 }
-uint8_t BMI(void) {
-    return 0;
-}
-
-uint8_t RTI(void) {
-    return 0;
-}
-uint8_t BVC(void) {
+static uint8_t BMI(void) {
     return 0;
 }
 
-uint8_t RTS(void) {
+static uint8_t RTI(void) {
+    return 0;
+}
+static uint8_t BVC(void) {
     return 0;
 }
 
-uint8_t BVS(void) {
+static uint8_t RTS(void) {
     return 0;
 }
 
-uint8_t NOP(void) {
+static uint8_t BVS(void) {
     return 0;
 }
 
-uint8_t BCC(void) {
+static uint8_t NOP(void) {
     return 0;
 }
 
-uint8_t BCS(void) {
+static uint8_t BCC(void) {
     return 0;
 }
 
-uint8_t BNE(void) {
+static uint8_t BCS(void) {
     return 0;
 }
 
-uint8_t CPX(void) {
+static uint8_t BNE(void) {
+    return 0;
+}
+
+static uint8_t CPX(void) {
     fetch();
 
     uint16_t tmp = (uint16_t)cpu.x - (uint16_t)fetched;
@@ -403,7 +486,7 @@ uint8_t CPX(void) {
     return 0;
 }
 
-uint8_t CPY(void) {
+static uint8_t CPY(void) {
     fetch();
 
     // comparing (I think this is just beautiful)
@@ -421,11 +504,11 @@ uint8_t CPY(void) {
     return 0;
 }
 
-uint8_t BEQ(void) {
+static uint8_t BEQ(void) {
     return 0;
 }
 
-uint8_t ORA(void) {
+static uint8_t ORA(void) {
     printf("(ORA) Called ORA.\n");
 
     fetch();
@@ -442,7 +525,7 @@ uint8_t ORA(void) {
     return 1;
 }
 
-uint8_t AND(void) {
+static uint8_t AND(void) {
     printf("(AND) Called AND.\n");
 
     fetch();
@@ -459,7 +542,7 @@ uint8_t AND(void) {
     return 1;
 }
 
-uint8_t EOR(void) {
+static uint8_t EOR(void) {
     printf("(EOR) Called EOR.\n");
 
     fetch();
@@ -476,7 +559,7 @@ uint8_t EOR(void) {
     return 1;
 }
 
-uint8_t BIT(void) {
+static uint8_t BIT(void) {
     printf("(BIT) Called BIT.\n");
 
     fetch();
@@ -492,7 +575,7 @@ uint8_t BIT(void) {
     return 0;
 }
 
-uint8_t ADC(void) {
+static uint8_t ADC(void) {
     fetch();
 
     uint16_t tmp = (uint16_t)cpu.ac + (uint16_t)fetched + (uint16_t)cpu_extract_sr(C);
@@ -512,28 +595,28 @@ uint8_t ADC(void) {
     return 1;
 }
 
-uint8_t STA(void) {
+static uint8_t STA(void) {
     printf("(STA) Called STA.\n");
 
     cpu_write(addr_abs, cpu.ac);
     return 0;
 }
 
-uint8_t STX(void) {
+static uint8_t STX(void) {
     printf("(STX) Called STX.\n");
 
     cpu_write(addr_abs, cpu.x);
     return 0;
 }
 
-uint8_t STY(void) {
+static uint8_t STY(void) {
     printf("(STY) Called STY.\n");
 
     cpu_write(addr_abs, cpu.y);
     return 0;
 }
 
-uint8_t CMP(void) {
+static uint8_t CMP(void) {
     fetch();
 
     // comparing (I think this is just beautiful)
@@ -551,7 +634,7 @@ uint8_t CMP(void) {
     return 1;
 }
 
-uint8_t SBC(void) {
+static uint8_t SBC(void) {
     fetch();
 
     // inverting the bottom 8 bits
@@ -574,7 +657,7 @@ uint8_t SBC(void) {
     return 1;
 }
 
-uint8_t ASL(void) {
+static uint8_t ASL(void) {
     fetch();
     uint16_t tmp = (uint16_t)fetched << 1;
 
@@ -596,7 +679,7 @@ uint8_t ASL(void) {
     return 0;
 }
 
-uint8_t ROL(void) {
+static uint8_t ROL(void) {
     fetch();
     uint16_t tmp = (uint16_t)(fetched << 1) | cpu_extract_sr(C);
 
@@ -618,7 +701,7 @@ uint8_t ROL(void) {
     return 0;
 }
 
-uint8_t ROR(void) {
+static uint8_t ROR(void) {
     fetch();
     uint16_t tmp = (uint16_t)(cpu_extract_sr(C) << 7) | (fetched >> 1);
 
@@ -640,7 +723,7 @@ uint8_t ROR(void) {
     return 0;
 }
 
-uint8_t LSR(void) {
+static uint8_t LSR(void) {
     fetch();
     uint16_t tmp = (uint16_t)fetched >> 1;
 
@@ -662,7 +745,7 @@ uint8_t LSR(void) {
     return 0;
 }
 
-uint8_t DEC(void) {
+static uint8_t DEC(void) {
     fetch();
     uint16_t tmp = fetched - 1;
 
@@ -677,7 +760,7 @@ uint8_t DEC(void) {
     return 0;
 }
 
-uint8_t DEX(void) {
+static uint8_t DEX(void) {
     cpu.x++;
 
     if (cpu.x == 0x0000)
@@ -689,7 +772,7 @@ uint8_t DEX(void) {
     return 0;
 }
 
-uint8_t DEY(void) {
+static uint8_t DEY(void) {
     cpu.y++;
 
     if (cpu.y == 0x0000)
@@ -701,7 +784,7 @@ uint8_t DEY(void) {
     return 0;
 }
 
-uint8_t INC(void) {
+static uint8_t INC(void) {
     fetch();
     uint16_t tmp = (uint16_t)fetched + 1;
 
@@ -716,7 +799,7 @@ uint8_t INC(void) {
     return 0;
 }
 
-uint8_t INX(void) {
+static uint8_t INX(void) {
     cpu.x++;
 
     if (cpu.x == 0x00)
@@ -728,7 +811,7 @@ uint8_t INX(void) {
     return 0;
 }
 
-uint8_t INY(void) {
+static uint8_t INY(void) {
     cpu.y++;
 
     if (cpu.y == 0x00)
@@ -740,7 +823,7 @@ uint8_t INY(void) {
     return 0;
 }
 
-uint8_t PHP(void) {
+static uint8_t PHP(void) {
     printf("(PHP) Called PHP.\n");
 
     cpu_write(0x0100 + cpu.sp, cpu.sr);
@@ -749,15 +832,15 @@ uint8_t PHP(void) {
     return 0;
 }
 
-uint8_t SEC(void) {
+static uint8_t SEC(void) {
     return 0;
 }
 
-uint8_t CLC(void) {
+static uint8_t CLC(void) {
     return 0;
 }
 
-uint8_t PLP(void) {
+static uint8_t PLP(void) {
     printf("(PLP) Called PLP.\n");
 
     cpu.sp++;
@@ -766,7 +849,7 @@ uint8_t PLP(void) {
     return 0;
 }
 
-uint8_t PLA(void) {
+static uint8_t PLA(void) {
     printf("(PLA) Called PLA.\n");
 
     cpu.sp++;
@@ -783,7 +866,7 @@ uint8_t PLA(void) {
     return 0;
 }
 
-uint8_t PHA(void) {
+static uint8_t PHA(void) {
     printf("(PHA) Called PHA.\n");
 
     // 0x0100 is the starting addr of the stack
@@ -793,15 +876,15 @@ uint8_t PHA(void) {
     return 0;
 }
 
-uint8_t CLI(void) {
+static uint8_t CLI(void) {
     return 0;
 }
 
-uint8_t SEI(void) {
+static uint8_t SEI(void) {
     return 0;
 }
 
-uint8_t TYA(void) {
+static uint8_t TYA(void) {
     printf("(TYA) Called TYA.\n");
 
     cpu.ac = cpu.y;
@@ -816,19 +899,19 @@ uint8_t TYA(void) {
     return 0;
 }
 
-uint8_t CLV(void) {
+static uint8_t CLV(void) {
     return 0;
 }
 
-uint8_t CLD(void) {
+static uint8_t CLD(void) {
     return 0;
 }
 
-uint8_t SED(void) {
+static uint8_t SED(void) {
     return 0;
 }
 
-uint8_t TXA(void) {
+static uint8_t TXA(void) {
     printf("(TXA) Called TXA.\n");
 
     cpu.ac = cpu.x;
@@ -844,14 +927,14 @@ uint8_t TXA(void) {
     return 0;
 }
 
-uint8_t TXS(void) {
+static uint8_t TXS(void) {
     printf("(TXS) Called TXS.\n");
 
     cpu.sp = cpu.x;
     return 0;
 }
 
-uint8_t TAX(void) {
+static uint8_t TAX(void) {
     printf("(TXA) Called TXA.\n");
 
     cpu.x = cpu.ac;
@@ -867,7 +950,7 @@ uint8_t TAX(void) {
     return 0;
 }
 
-uint8_t TAY(void) {
+static uint8_t TAY(void) {
     printf("(TAY) Called TAY.\n");
 
     cpu.y = cpu.ac;
@@ -883,7 +966,7 @@ uint8_t TAY(void) {
     return 0;
 }
 
-uint8_t TSX(void) {
+static uint8_t TSX(void) {
     printf("(TSX) Called TSX.\n");
 
     cpu.x = cpu.sp;
@@ -899,7 +982,7 @@ uint8_t TSX(void) {
     return 0;
 }
 
-uint8_t JMP(void) {
+static uint8_t JMP(void) {
     return 0;
 }
 
