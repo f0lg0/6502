@@ -433,20 +433,6 @@ static uint8_t BRK(void) {
     return 0;
 }
 
-static uint8_t BPL(void) {
-    if (cpu_extract_sr(N) == 0) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
-    }
-    return 0;
-}
-
 static uint8_t JSR(void) {
     cpu.pc--;
 
@@ -460,34 +446,7 @@ static uint8_t JSR(void) {
     return 0;
 }
 
-static uint8_t BMI(void) {
-    if (cpu_extract_sr(N) == 1) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
-    }
-    return 0;
-}
-
 static uint8_t RTI(void) {
-    return 0;
-}
-static uint8_t BVC(void) {
-    if (cpu_extract_sr(V) == 0) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
-    }
     return 0;
 }
 
@@ -498,20 +457,6 @@ static uint8_t RTS(void) {
     cpu.pc |= (uint16_t)cpu_fetch(0x0100 + cpu.sp) << 8;
     cpu.pc++;
 
-    return 0;
-}
-
-static uint8_t BVS(void) {
-    if (cpu_extract_sr(V) == 0) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
-    }
     return 0;
 }
 
@@ -547,8 +492,78 @@ static uint8_t BCS(void) {
     return 0;
 }
 
+static uint8_t BEQ(void) {
+    if (cpu_extract_sr(Z) == 1) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
+    return 0;
+}
+
+static uint8_t BMI(void) {
+    if (cpu_extract_sr(N) == 1) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
+    return 0;
+}
+
 static uint8_t BNE(void) {
     if (cpu_extract_sr(Z) == 0) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
+    return 0;
+}
+
+static uint8_t BPL(void) {
+    if (cpu_extract_sr(N) == 0) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
+    return 0;
+}
+
+static uint8_t BVC(void) {
+    if (cpu_extract_sr(V) == 0) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
+    return 0;
+}
+
+static uint8_t BVS(void) {
+    if (cpu_extract_sr(V) == 0) {
         (*cys)++;
         addr_abs = cpu.pc + addr_rel;
 
@@ -603,20 +618,6 @@ static uint8_t CPY(void) {
     if (tmp & (1 << 7))
         cpu_mod_sr(N, 1);
 
-    return 0;
-}
-
-static uint8_t BEQ(void) {
-    if (cpu_extract_sr(Z) == 1) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
-    }
     return 0;
 }
 
