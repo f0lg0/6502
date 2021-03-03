@@ -122,6 +122,7 @@ uint16_t addr_abs = 0x0000;
 uint16_t addr_rel = 0x0000;
 
 uint8_t op = 0x00;
+uint32_t* cys = 0x000000;
 
 // a pointer to the fetched opcode in the cpu module
 uint8_t fetched = 0x00;
@@ -433,12 +434,43 @@ static uint8_t BRK(void) {
 }
 
 static uint8_t BPL(void) {
+    if (cpu_extract_sr(N) == 0) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
     return 0;
 }
+
 static uint8_t JSR(void) {
+    cpu.pc--;
+
+    cpu_write(0x0100 + cpu.sp, (cpu.pc >> 8) & 0x00FF);
+    cpu.sp--;
+    cpu_write(0x0100 + cpu.sp, cpu.pc & 0x00FF);
+    cpu.sp--;
+
+    cpu.pc = addr_abs;
+
     return 0;
 }
+
 static uint8_t BMI(void) {
+    if (cpu_extract_sr(N) == 1) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
     return 0;
 }
 
@@ -446,14 +478,40 @@ static uint8_t RTI(void) {
     return 0;
 }
 static uint8_t BVC(void) {
+    if (cpu_extract_sr(V) == 0) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
     return 0;
 }
 
 static uint8_t RTS(void) {
+    cpu.sp++;
+    cpu.pc = (uint16_t)cpu_fetch(0x0100 + cpu.sp);
+    cpu.sp++;
+    cpu.pc |= (uint16_t)cpu_fetch(0x0100 + cpu.sp) << 8;
+    cpu.pc++;
+
     return 0;
 }
 
 static uint8_t BVS(void) {
+    if (cpu_extract_sr(V) == 0) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
     return 0;
 }
 
@@ -462,14 +520,44 @@ static uint8_t NOP(void) {
 }
 
 static uint8_t BCC(void) {
+    if (cpu_extract_sr(C) == 0) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
     return 0;
 }
 
 static uint8_t BCS(void) {
+    if (cpu_extract_sr(C) == 1) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
     return 0;
 }
 
 static uint8_t BNE(void) {
+    if (cpu_extract_sr(Z) == 0) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
     return 0;
 }
 
@@ -519,6 +607,16 @@ static uint8_t CPY(void) {
 }
 
 static uint8_t BEQ(void) {
+    if (cpu_extract_sr(Z) == 1) {
+        (*cys)++;
+        addr_abs = cpu.pc + addr_rel;
+
+        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+            (*cys)++;
+        }
+
+        cpu.pc = addr_abs;
+    }
     return 0;
 }
 
@@ -1012,6 +1110,7 @@ static uint8_t TSX(void) {
 }
 
 static uint8_t JMP(void) {
+    cpu.pc = addr_abs;
     return 0;
 }
 
@@ -1022,15 +1121,16 @@ static uint8_t JMP(void) {
  * @return void
  */
 void inst_exec(uint8_t opcode, uint32_t* cycles) {
-    // saving the opcode to the global variable "op"
+    // saving variables to the corresponding global ones
     op = opcode;
+    cys = cycles;
 
-    *(cycles) = lookup[opcode].cycles;
+    *cycles = lookup[opcode].cycles;
 
     uint8_t additional_cycle_0 = (*(lookup[opcode].mode))();
     uint8_t additional_cycle_1 = (*(lookup[opcode].op))();
 
-    *(cycles) += (additional_cycle_0 & additional_cycle_1);
+    *cycles += (additional_cycle_0 & additional_cycle_1);
 
     debug_print("(inst_exec) cycles: %d, %p\n", *(cycles), (void *)cycles);
 }

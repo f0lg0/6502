@@ -84,7 +84,7 @@ void cpu_reset(void) {
  */
 static int8_t get_mem(uint16_t addr) {
     // this yields "warning: comparison is always true due to limited range of data type"
-    if (!(addr >= 0x0000 && addr <= 0xFFFF)) return -1;
+    // if (!(addr >= 0x0000 && addr <= 0xFFFF)) return -1;
 
     uint8_t parsed;
 
@@ -111,7 +111,7 @@ static int8_t get_mem(uint16_t addr) {
  */
 static uint8_t write_mem(uint16_t addr, uint8_t data) {
     // this yields "warning: comparison is always true due to limited range of data type"
-    if (!(addr >= 0x0000 && addr <= 0xFFFF)) return 1;
+    // if (!(addr >= 0x0000 && addr <= 0xFFFF)) return 1;
 
     if (addr <= 0x00FF) {
         mem_ptr->zero_page[addr] = data;
