@@ -126,8 +126,25 @@ uint32_t* cys = 0x000000;
 
 // a pointer to the fetched opcode in the cpu module
 uint8_t fetched = 0x00;
+
+/*
+ * =============================================
+ * HELPERS
+ * =============================================
+ */
 static void fetch(void) {
     if (lookup[op].mode != &IMP) fetched = cpu_fetch(addr_abs);
+}
+
+static void branch(void) {
+    (*cys)++;
+    addr_abs = cpu.pc + addr_rel;
+
+    if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
+        (*cys)++;
+    }
+
+    cpu.pc = addr_abs;
 }
 
 /*
@@ -466,112 +483,56 @@ static uint8_t NOP(void) {
 
 static uint8_t BCC(void) {
     if (cpu_extract_sr(C) == 0) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
+        branch();
     }
     return 0;
 }
 
 static uint8_t BCS(void) {
     if (cpu_extract_sr(C) == 1) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
+        branch();
     }
     return 0;
 }
 
 static uint8_t BEQ(void) {
     if (cpu_extract_sr(Z) == 1) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
+        branch();
     }
     return 0;
 }
 
 static uint8_t BMI(void) {
     if (cpu_extract_sr(N) == 1) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
+        branch();
     }
     return 0;
 }
 
 static uint8_t BNE(void) {
     if (cpu_extract_sr(Z) == 0) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
+        branch();
     }
     return 0;
 }
 
 static uint8_t BPL(void) {
     if (cpu_extract_sr(N) == 0) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
+        branch();
     }
     return 0;
 }
 
 static uint8_t BVC(void) {
     if (cpu_extract_sr(V) == 0) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
+        branch();
     }
     return 0;
 }
 
 static uint8_t BVS(void) {
     if (cpu_extract_sr(V) == 0) {
-        (*cys)++;
-        addr_abs = cpu.pc + addr_rel;
-
-        if ((addr_abs & 0xFF00) != (cpu.pc & 0xFF00)) {
-            (*cys)++;
-        }
-
-        cpu.pc = addr_abs;
+        branch();
     }
     return 0;
 }
