@@ -162,8 +162,6 @@ static void branch(void) {
  * @return 0
  */
 static uint8_t IMP(void) {
-    printf("(MODE) IMP.\n");
-
     fetched = cpu.ac;
     return 0;
 }
@@ -175,8 +173,6 @@ static uint8_t IMP(void) {
  * @return 0
  */
 static uint8_t IMM(void) {
-    printf("(MODE) IMM.\n");
-
     addr_abs = cpu.pc++;
     return 0;
 }
@@ -190,8 +186,6 @@ static uint8_t IMM(void) {
  * @return 0
  */
 static uint8_t ZP0(void) {
-    printf("(MODE) ZP0.\n");
-
     addr_abs = (cpu_fetch(cpu.pc) & 0x00FF);
     return 0;
 }
@@ -202,8 +196,6 @@ static uint8_t ZP0(void) {
  * @return 0
  */
 static uint8_t ZPX(void) {
-    printf("(MODE) ZPX.\n");
-
     addr_abs = ((cpu_fetch(cpu.pc) + cpu.x) & 0x00FF);
     return 0;
 }
@@ -214,8 +206,6 @@ static uint8_t ZPX(void) {
  * @return 0
  */
 static uint8_t ZPY(void) {
-    printf("(MODE) ZPY.\n");
-
     addr_abs = ((cpu_fetch(cpu.pc) + cpu.y) & 0x00FF);
     return 0;
 }
@@ -226,8 +216,6 @@ static uint8_t ZPY(void) {
  * @return
  */
 static uint8_t ABS(void) {
-    printf("(MODE) ABS.\n");
-
     uint16_t low = cpu_fetch(cpu.pc);
     uint16_t high = cpu_fetch(cpu.pc);
 
@@ -242,8 +230,6 @@ static uint8_t ABS(void) {
  * @return 1 if an extra cycles is requires due to page change, 0 if not
  */
 static uint8_t ABX(void) {
-    printf("(MODE) ABX.\n");
-
     uint16_t low = cpu_fetch(cpu.pc);
     uint16_t high = cpu_fetch(cpu.pc);
 
@@ -261,8 +247,6 @@ static uint8_t ABX(void) {
  * @return void
  */
 static uint8_t ABY(void) {
-    printf("(MODE) ABY.\n");
-
     uint16_t low = cpu_fetch(cpu.pc);
     uint16_t high = cpu_fetch(cpu.pc);
 
@@ -281,8 +265,6 @@ static uint8_t ABY(void) {
  * @return void
  */
 static uint8_t IND(void) {
-    printf("(MODE) IND.\n");
-
     uint16_t low = cpu_fetch(cpu.pc);
     uint16_t high = cpu_fetch(cpu.pc);
 
@@ -385,8 +367,6 @@ static uint8_t XXX(void)  {
  * @return 1
  */
 static uint8_t LDA(void) {
-    printf("(LDA) Called LDA.\n");
-
     fetch();
     cpu.ac = fetched;
 
@@ -408,8 +388,6 @@ static uint8_t LDA(void) {
  * @return 1
  */
 static uint8_t LDX(void) {
-    printf("(LDX) Called LDX.\n");
-
     fetch();
     cpu.x = fetched;
 
@@ -430,8 +408,6 @@ static uint8_t LDX(void) {
  * @return 1
  */
 static uint8_t LDY(void) {
-    printf("(LDY) Called LDY.\n");
-
     fetch();
     cpu.y = fetched;
 
@@ -613,8 +589,6 @@ static uint8_t CPY(void) {
  * @return 1
  */
 static uint8_t ORA(void) {
-    printf("(ORA) Called ORA.\n");
-
     fetch();
     cpu.ac = cpu.ac | fetched;
 
@@ -635,8 +609,6 @@ static uint8_t ORA(void) {
  * @return 1
  */
 static uint8_t AND(void) {
-    printf("(AND) Called AND.\n");
-
     fetch();
     cpu.ac = cpu.ac & fetched;
 
@@ -657,8 +629,6 @@ static uint8_t AND(void) {
  * @return 1
  */
 static uint8_t EOR(void) {
-    printf("(EOR) Called EOR.\n");
-
     fetch();
     cpu.ac = cpu.ac ^ fetched;
 
@@ -674,8 +644,6 @@ static uint8_t EOR(void) {
 }
 
 static uint8_t BIT(void) {
-    printf("(BIT) Called BIT.\n");
-
     fetch();
     uint16_t tmp = cpu.ac & fetched;
 
@@ -710,22 +678,16 @@ static uint8_t ADC(void) {
 }
 
 static uint8_t STA(void) {
-    printf("(STA) Called STA.\n");
-
     cpu_write(addr_abs, cpu.ac);
     return 0;
 }
 
 static uint8_t STX(void) {
-    printf("(STX) Called STX.\n");
-
     cpu_write(addr_abs, cpu.x);
     return 0;
 }
 
 static uint8_t STY(void) {
-    printf("(STY) Called STY.\n");
-
     cpu_write(addr_abs, cpu.y);
     return 0;
 }
@@ -938,8 +900,6 @@ static uint8_t INY(void) {
 }
 
 static uint8_t PHP(void) {
-    printf("(PHP) Called PHP.\n");
-
     cpu_write(0x0100 + cpu.sp, cpu.sr);
     cpu.sp--;
 
@@ -957,8 +917,6 @@ static uint8_t CLC(void) {
 }
 
 static uint8_t PLP(void) {
-    printf("(PLP) Called PLP.\n");
-
     cpu.sp++;
     cpu.sr = cpu_fetch(0x0100 + cpu.sp);
 
@@ -966,8 +924,6 @@ static uint8_t PLP(void) {
 }
 
 static uint8_t PLA(void) {
-    printf("(PLA) Called PLA.\n");
-
     cpu.sp++;
     cpu.ac = cpu_fetch(0x0100 + cpu.sp);
 
@@ -983,8 +939,6 @@ static uint8_t PLA(void) {
 }
 
 static uint8_t PHA(void) {
-    printf("(PHA) Called PHA.\n");
-
     // 0x0100 is the starting addr of the stack
     cpu_write(0x0100 + cpu.sp, cpu.ac);
     cpu.sp--;
@@ -1003,8 +957,6 @@ static uint8_t SEI(void) {
 }
 
 static uint8_t TYA(void) {
-    printf("(TYA) Called TYA.\n");
-
     cpu.ac = cpu.y;
 
     if (cpu.ac == 0) {
@@ -1033,8 +985,6 @@ static uint8_t SED(void) {
 }
 
 static uint8_t TXA(void) {
-    printf("(TXA) Called TXA.\n");
-
     cpu.ac = cpu.x;
 
     if (cpu.ac == 0) {
@@ -1049,15 +999,11 @@ static uint8_t TXA(void) {
 }
 
 static uint8_t TXS(void) {
-    printf("(TXS) Called TXS.\n");
-
     cpu.sp = cpu.x;
     return 0;
 }
 
 static uint8_t TAX(void) {
-    printf("(TXA) Called TXA.\n");
-
     cpu.x = cpu.ac;
 
     if (cpu.x == 0) {
@@ -1072,8 +1018,6 @@ static uint8_t TAX(void) {
 }
 
 static uint8_t TAY(void) {
-    printf("(TAY) Called TAY.\n");
-
     cpu.y = cpu.ac;
 
     if (cpu.y == 0) {
@@ -1088,8 +1032,6 @@ static uint8_t TAY(void) {
 }
 
 static uint8_t TSX(void) {
-    printf("(TSX) Called TSX.\n");
-
     cpu.x = cpu.sp;
 
     if (cpu.x == 0) {
