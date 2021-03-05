@@ -447,6 +447,20 @@ static uint8_t LDY(void) {
 }
 
 static uint8_t BRK(void) {
+    cpu.pc++;
+    cpu_mod_sr(I, 1);
+
+    cpu_write(0x0100 + cpu.sp, (cpu.pc >> 8) & 0x00FF);
+    cpu.sp--;
+    cpu_write(0x0100 + cpu.sp, cpu.pc & 0x00FF);
+    cpu.sp--;
+
+    cpu_mod_sr(B, 1);
+    cpu_write(0x0100 + cpu.sp, cpu.sr);
+    cpu.sp--;
+    cpu_mod_sr(B, 1);
+
+    cpu.pc = (uint16_t)cpu_fetch(0xFFFE) | ((uint16_t)cpu_fetch(0xFFFF) << 8);
     return 0;
 }
 
@@ -464,6 +478,16 @@ static uint8_t JSR(void) {
 }
 
 static uint8_t RTI(void) {
+    cpu.sp++;
+
+    cpu.sr = cpu_fetch(0x0100 + cpu.sp);
+    cpu.sr &= ~B;
+
+    cpu.sp++;
+    cpu.pc = (uint16_t)cpu_fetch(0x0100 + cpu.sp);
+    cpu.sp++;
+    cpu.pc |= (uint16_t)cpu_fetch(0x0100 + cpu.sp) << 8;
+
     return 0;
 }
 
@@ -478,6 +502,7 @@ static uint8_t RTS(void) {
 }
 
 static uint8_t NOP(void) {
+    cpu.pc++;
     return 0;
 }
 
@@ -922,10 +947,12 @@ static uint8_t PHP(void) {
 }
 
 static uint8_t SEC(void) {
+    cpu_mod_sr(C, 1);
     return 0;
 }
 
 static uint8_t CLC(void) {
+    cpu_mod_sr(C, 0);
     return 0;
 }
 
@@ -966,10 +993,12 @@ static uint8_t PHA(void) {
 }
 
 static uint8_t CLI(void) {
+    cpu_mod_sr(I, 0);
     return 0;
 }
 
 static uint8_t SEI(void) {
+    cpu_mod_sr(I, 1);
     return 0;
 }
 
@@ -989,14 +1018,17 @@ static uint8_t TYA(void) {
 }
 
 static uint8_t CLV(void) {
+    cpu_mod_sr(V, 0);
     return 0;
 }
 
 static uint8_t CLD(void) {
+    cpu_mod_sr(D, 0);
     return 0;
 }
 
 static uint8_t SED(void) {
+    cpu_mod_sr(D, 1);
     return 0;
 }
 
