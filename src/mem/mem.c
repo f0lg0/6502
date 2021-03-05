@@ -16,6 +16,11 @@
  * */
 struct mem memory;
 
+static void load_example(void) {
+    const char code[84] = "A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA 8D 02 00 EA EA EA";
+    memcpy(memory.data, code, sizeof(code));
+}
+
 /**
  * mem_init: Initialize the memory to its initial state
  *
@@ -34,6 +39,8 @@ void mem_init(void) {
     memory.last_six[3] = 0xD;
     memory.last_six[4] = 0xE;
     memory.last_six[5] = 0xF;
+
+    load_example();
 }
 
 struct mem* mem_get_ptr(void) {
