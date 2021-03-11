@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "cpu.h"
 #include "../mem/mem.h"
@@ -162,14 +163,14 @@ void cpu_exec() {
         // executing in a take
         if (cycles == 0) {
             fetched = cpu_fetch(cpu.pc);
-            if (fetched == -1) goto error;
+            if (fetched == -1) {
+                printf("(FAILED) Couldn't fetch valid data!\n");
+                exit(1);
+            };
 
             printf("(cpu_exec) fetched: 0x%X\n", fetched);
             inst_exec(fetched, &cycles);
         }
         cycles--;
     } while (cycles != 0);
-
-    error:
-        printf("(FAILED) Couldn't fetch valid data!\n");
 }

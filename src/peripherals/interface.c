@@ -36,7 +36,7 @@ uint8_t QUIT = 0;
 void inter_init_display(void) {
     SDL_Init(SDL_INIT_VIDEO);
     screen = SDL_CreateWindow("6502", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, W_WIDTH, W_HEIGHT, 0);
-    renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_PRESENTVSYNC);
 }
 
 static void display_header(void) {
