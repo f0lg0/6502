@@ -27,7 +27,7 @@ struct mem* mem_ptr = NULL;
 void cpu_init(void) {
     mem_ptr = mem_get_ptr();
 
-    for (uint16_t i = 0x8000; i < 0x8018; i++) {
+    for (uint16_t i = 0x8000 - 0x0200; i < 0x8018 - 0x0200; i++) {
         printf("0x%X ", mem_ptr->data[i]);
     }
     printf("\n");

@@ -69,10 +69,10 @@ static void destroy_header(void) {
 static void display_registers(void) {
     // is this even secure? lol
     // MAX STRING WE CAN POSSIBLY GET --> ac: 255\npc: 65535\nsp: 255\nx: 255\ny: 255\nsr: 255
-    uint16_t max_str_len = strlen("ac: 255 pc: 65535 sp: 255 x: 255 y: 255 sr: 255");
+    uint16_t max_str_len = strlen("ac: 0x00 pc: 0x0000 sp: 0x00 x: 0x00 y: 0x00 sr: 0x00");
     char* buff = malloc(max_str_len + 1);
 
-    if ((snprintf(buff, max_str_len, "ac: %d pc: %d sp: %d x: %d y: %d sr: %d", cpu.ac, cpu.pc,  cpu.sp, cpu.x, cpu.y, cpu.sr)) < 0) {
+    if ((snprintf(buff, max_str_len, "ac: 0x%X pc: 0x%X sp: 0x%X x: 0x%X y: 0x%X sr: 0x%X", cpu.ac, cpu.pc,  cpu.sp, cpu.x, cpu.y, cpu.sr)) < 0) {
         printf("(FAILED) Can't format string into buffer.\n");
         exit(1);
     }

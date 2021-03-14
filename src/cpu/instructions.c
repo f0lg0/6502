@@ -149,16 +149,17 @@ static void branch(void) {
 
 void reset(void) {
     addr_abs = 0xFFFC;
-    uint16_t  low = cpu_fetch(addr_abs + 0);
-    uint16_t  high = cpu_fetch(addr_abs + 1);
+    uint16_t low = cpu_fetch(addr_abs + 0);
+    uint16_t high = cpu_fetch(addr_abs + 1);
 
     cpu.pc = (high << 8) | low;
+    printf("PC: 0x%X\n", cpu.pc);
 
     cpu.ac = 0;
     cpu.x = 0;
     cpu.y = 0;
     cpu.sp = 0xFD;
-    cpu.sr = 0x00 | 0x00;
+    cpu.sr = 0x00;
 
     addr_rel = 0x0000;
     addr_abs = 0x0000;
