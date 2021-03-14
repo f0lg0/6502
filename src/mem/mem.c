@@ -1,6 +1,7 @@
 #include "mem.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /**
  * The memory:
@@ -16,9 +17,64 @@
  * */
 struct mem memory;
 
+static uint8_t write_mem(uint16_t addr, uint8_t data) {
+    printf("addr: 0x%X\n", addr);
+    // this yields "warning: comparison is always true due to limited range of data type"
+    // if (!(addr >= 0x0000 && addr <= 0xFFFF)) return 1;
+
+    if (addr <= 0x00FF) {
+        memory.zero_page[addr] = data;
+    } else if (addr >= 0x0100 && addr <= 0x01FF) {
+        memory.stack[addr - 0x0100] = data;
+    } else if (addr >= 0xFFFA) {
+        memory.last_six[addr - 0xFDFA] = data;
+    } else {
+        printf("writing to data section\n");
+        memory.data[addr - 0x0200] = data;
+    }
+
+    return 0;
+}
+
 static void load_example(void) {
-    const char code[84] = "A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA 8D 02 00 EA EA EA";
-    memcpy(memory.data, code, sizeof(code));
+    const char* instructions[] = {
+            "A2",
+            "0A",
+            "8E",
+            "00",
+            "00",
+            "A2",
+            "03",
+            "8E",
+            "01",
+            "00",
+            "AC",
+            "00",
+            "00",
+            "A9",
+            "00",
+            "18",
+            "6D",
+            "01",
+            "00",
+            "88",
+            "D0",
+            "FA",
+            "8D",
+            "02",
+            "00",
+            "EA",
+            "EA",
+            "EA",
+    };
+
+    uint16_t off = 0x8000;
+    for (uint8_t i = 0; i < 28; i++) {
+        write_mem(off++, strtoul(instructions[i], NULL, 16));
+    }
+
+    write_mem(0xFFFC, 0x00);
+    write_mem(0xFFFD, 0x80);
 }
 
 /**
@@ -33,12 +89,12 @@ void mem_init(void) {
     memset(memory.data, 0, sizeof(memory.data));
 
     // TODO: not really sure about this
-    memory.last_six[0] = 0xA;
-    memory.last_six[1] = 0xB;
-    memory.last_six[2] = 0xC;
-    memory.last_six[3] = 0xD;
-    memory.last_six[4] = 0xE;
-    memory.last_six[5] = 0xF;
+//    memory.last_six[0] = 0xA;
+//    memory.last_six[1] = 0xB;
+//    memory.last_six[2] = 0xC;
+//    memory.last_six[3] = 0xD;
+//    memory.last_six[4] = 0xE;
+//    memory.last_six[5] = 0xF;
 
     load_example();
 }

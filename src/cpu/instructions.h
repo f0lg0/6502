@@ -13,5 +13,6 @@ struct instruction {
 };
 
 void inst_exec(uint8_t opcode, uint32_t* cycles);
+void reset(void);
 
 #endif

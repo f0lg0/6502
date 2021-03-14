@@ -26,6 +26,11 @@ struct mem* mem_ptr = NULL;
  */
 void cpu_init(void) {
     mem_ptr = mem_get_ptr();
+
+    for (uint16_t i = 0x8000; i < 0x8018; i++) {
+        printf("0x%X ", mem_ptr->data[i]);
+    }
+    printf("\n");
 }
 
 /**
@@ -67,13 +72,7 @@ uint8_t cpu_mod_sr(uint8_t flag, uint8_t val) {
  * */
 void cpu_reset(void) {
     printf("(cpu_reset) called.\n");
-
-    cpu.pc = 0x0200;
-    cpu.sp = 0xFD;
-    cpu.ac = 0x00;
-    cpu.x = 0x00;
-    cpu.y = 0x00;
-    cpu.sr = 0x00;
+    reset();
 
     cycles = 8;
 }
