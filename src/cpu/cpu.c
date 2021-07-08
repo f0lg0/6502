@@ -1,12 +1,12 @@
+#include "cpu.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cpu.h"
 #include "../mem/mem.h"
-#include "instructions.h"
 #include "../utils/misc.h"
-
+#include "instructions.h"
 
 /**
  * Little-endian 8-bit microprocessor that expects addresses
@@ -24,14 +24,7 @@ struct mem* mem_ptr = NULL;
  * @param void
  * @return void
  */
-void cpu_init(void) {
-    mem_ptr = mem_get_ptr();
-
-    for (uint16_t i = 0x8000 - 0x0200; i < 0x8018 - 0x0200; i++) {
-        printf("0x%X ", mem_ptr->data[i]);
-    }
-    printf("\n");
-}
+void cpu_init(void) { mem_ptr = mem_get_ptr(); }
 
 /**
  * cpu_extract_sr: Extract one of the 7 flags from the status reg.
@@ -83,23 +76,20 @@ void cpu_reset(void) {
  * @return The retrieved data
  */
 static int8_t get_mem(uint16_t addr) {
-    // this yields "warning: comparison is always true due to limited range of data type"
-    // if (!(addr >= 0x0000 && addr <= 0xFFFF)) return -1;
-
-    uint8_t parsed;
+    // this yields "warning: comparison is always true due to limited range of
+    // data type" if (!(addr >= 0x0000 && addr <= 0xFFFF)) return -1;
+    debug_print("(get_mem) reading at: 0x%X\n", addr);
 
     // no need to check >= 0x0000, it's unsigned
     if (addr <= 0x00FF) {
         return mem_ptr->zero_page[addr];
     } else if (addr >= 0x0100 && addr <= 0x01FF) {
-        parsed = addr - 0x0100;
-        return mem_ptr->stack[parsed];
+        return mem_ptr->stack[addr - 0x0100];
     } else if (addr >= 0xFFFA) {
-        parsed = addr - 0xFDFA;
-        return mem_ptr->last_six[parsed];
+        return mem_ptr->last_six[addr - 0xFDFA];
     } else {
-        parsed = addr - 0x0200;
-        return mem_ptr->data[parsed];
+        debug_print("(get_mem) parsed: 0x%X\n", addr - 0x0200);
+        return mem_ptr->data[addr - 0x0200];
     }
 }
 
@@ -110,8 +100,8 @@ static int8_t get_mem(uint16_t addr) {
  * @return 0 if success, 1 if failure
  */
 static uint8_t write_mem(uint16_t addr, uint8_t data) {
-    // this yields "warning: comparison is always true due to limited range of data type"
-    // if (!(addr >= 0x0000 && addr <= 0xFFFF)) return 1;
+    // this yields "warning: comparison is always true due to limited range of
+    // data type" if (!(addr >= 0x0000 && addr <= 0xFFFF)) return 1;
 
     if (addr <= 0x00FF) {
         mem_ptr->zero_page[addr] = data;
@@ -132,7 +122,9 @@ static uint8_t write_mem(uint16_t addr, uint8_t data) {
  * @return void
  */
 uint8_t cpu_fetch(uint16_t addr) {
+    debug_print("(cpu_fetch) reading at: 0x%X\n", addr);
     uint8_t data = get_mem(addr);
+    debug_print("(cpu_fetch) GOT: 0x%X\n", data);
     if (addr == cpu.pc) cpu.pc++;
 
     return data;
@@ -167,7 +159,7 @@ void cpu_exec() {
                 exit(1);
             };
 
-            printf("(cpu_exec) fetched: 0x%X\n", fetched);
+            debug_print("(cpu_exec) fetched: 0x%X\n", fetched);
             inst_exec(fetched, &cycles);
         }
         cycles--;

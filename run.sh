@@ -1,0 +1,2 @@
+make
+./bin/emulator.out

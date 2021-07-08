@@ -1,16 +1,17 @@
 /*
  * NOTE: this module is trash. I am not a game/graphics developer, this
- * is my first time creating a GUI for a program (I only have experience in web-dev).
- * I am interested in feedback regarding graphics performance, I know there are some
- * cool techniques but I want to focus more on the 6502 itself.
+ * is my first time creating a GUI for a program (I only have experience in
+ * web-dev). I am interested in feedback regarding graphics performance, I know
+ * there are some cool techniques but I want to focus more on the 6502 itself.
  */
+
+#include "interface.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdint.h>
 #include <stdio.h>
 
-#include "interface.h"
 #include "../cpu/cpu.h"
 
 SDL_Window* screen;
@@ -27,15 +28,14 @@ SDL_Surface* regs_surface;
 SDL_Texture* regs;
 SDL_Rect regs_rect;
 
-SDL_Scancode keymappings[2] = {
-        SDL_SCANCODE_SPACE, SDL_SCANCODE_R
-};
+SDL_Scancode keymappings[2] = {SDL_SCANCODE_SPACE, SDL_SCANCODE_R};
 
 uint8_t QUIT = 0;
 
 void inter_init_display(void) {
     SDL_Init(SDL_INIT_VIDEO);
-    screen = SDL_CreateWindow("6502", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, W_WIDTH, W_HEIGHT, 0);
+    screen = SDL_CreateWindow("6502", SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED, W_WIDTH, W_HEIGHT, 0);
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_PRESENTVSYNC);
 }
 
@@ -68,11 +68,15 @@ static void destroy_header(void) {
 
 static void display_registers(void) {
     // is this even secure? lol
-    // MAX STRING WE CAN POSSIBLY GET --> ac: 255\npc: 65535\nsp: 255\nx: 255\ny: 255\nsr: 255
-    uint16_t max_str_len = strlen("ac: 0x00 pc: 0x0000 sp: 0x00 x: 0x00 y: 0x00 sr: 0x00");
+    // MAX STRING WE CAN POSSIBLY GET --> ac: 255\npc: 65535\nsp: 255\nx:
+    // 255\ny: 255\nsr: 255
+    uint16_t max_str_len =
+        strlen("ac: 0x00 pc: 0x0000 sp: 0x00 x: 0x00 y: 0x00 sr: 0x00");
     char* buff = malloc(max_str_len + 1);
 
-    if ((snprintf(buff, max_str_len, "ac: 0x%X pc: 0x%X sp: 0x%X x: 0x%X y: 0x%X sr: 0x%X", cpu.ac, cpu.pc,  cpu.sp, cpu.x, cpu.y, cpu.sr)) < 0) {
+    if ((snprintf(buff, max_str_len,
+                  "ac: 0x%X pc: 0x%X sp: 0x%X x: 0x%X y: 0x%X sr: 0x%X", cpu.ac,
+                  cpu.pc, cpu.sp, cpu.x, cpu.y, cpu.sr)) < 0) {
         printf("(FAILED) Can't format string into buffer.\n");
         exit(1);
     }
@@ -108,7 +112,8 @@ static void destroy_registers(void) {
 void inter_init_text(void) {
     TTF_Init();
 
-    font = TTF_OpenFont("../assets/retro.ttf", 24);
+    // /home/f0lg0/code/git/f0lg0/6502/assets/retro.ttf
+    font = TTF_OpenFont("/home/f0lg0/code/git/f0lg0/6502/assets/retro.ttf", 24);
 
     if (font == NULL) {
         printf("(FAILED) Cannot load font set.\n");
@@ -133,7 +138,8 @@ void inter_draw(void) {
         exit(1);
     }
 
-    // TODO: make this better (maybe an update function). Avoid re-creating everything here
+    // TODO: make this better (maybe an update function). Avoid re-creating
+    // everything here
     display_registers();
 
     status = SDL_RenderCopy(renderer, regs, NULL, &regs_rect);
@@ -142,7 +148,6 @@ void inter_draw(void) {
         printf("(FAILED) Can't render text.\n");
         exit(1);
     }
-
 
     SDL_RenderPresent(renderer);
 }
@@ -156,6 +161,7 @@ void inter_event_handler(uint8_t* keypad) {
         switch (event.type) {
             case SDL_QUIT:
                 QUIT = 1;
+                printf("[!] Quitting...\n");
                 break;
 
             case SDL_KEYDOWN:
@@ -166,6 +172,7 @@ void inter_event_handler(uint8_t* keypad) {
 
             default:
                 if (state[SDL_SCANCODE_ESCAPE]) {
+                    printf("[!] Quitting...\n");
                     QUIT = 1;
                 }
                 break;
@@ -173,11 +180,7 @@ void inter_event_handler(uint8_t* keypad) {
     }
 }
 
-
-
-uint8_t inter_should_quit(void) {
-    return QUIT;
-}
+uint8_t inter_should_quit(void) { return QUIT; }
 
 void inter_stop_display(void) {
     // destroying texts
