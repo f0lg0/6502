@@ -8,11 +8,21 @@
 
 #include "instructions.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
 #include "../utils/misc.h"
 #include "cpu.h"
+
+// utility function
+static void set_flag(uint8_t flag, bool exp) {
+    if (exp) {
+        cpu_mod_sr(flag, 1);
+    } else {
+        cpu_mod_sr(flag, 0);
+    }
+}
 
 /*
  * =============================================
@@ -470,14 +480,8 @@ static uint8_t LDA(void) {
     fetch();
     cpu.ac = fetched;
 
-    if (cpu.ac == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    // if 7th bit of cpu.ac is set
-    if (cpu.ac & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(Z, cpu.ac == 0);
+    set_flag(N, cpu.ac & (1 << 7));
 
     return 1;
 }
@@ -491,13 +495,8 @@ static uint8_t LDX(void) {
     fetch();
     cpu.x = fetched;
 
-    if (cpu.x == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.x & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(Z, cpu.x == 0);
+    set_flag(N, cpu.x & (1 << 7));
 
     return 1;
 }
@@ -511,30 +510,25 @@ static uint8_t LDY(void) {
     fetch();
     cpu.y = fetched;
 
-    if (cpu.y == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.y & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(Z, cpu.y == 0);
+    set_flag(N, cpu.y & (1 << 7));
 
     return 1;
 }
 
 static uint8_t BRK(void) {
     cpu.pc++;
-    cpu_mod_sr(I, 1);
+    set_flag(I, true);
 
     cpu_write(0x0100 + cpu.sp, (cpu.pc >> 8) & 0x00FF);
     cpu.sp--;
     cpu_write(0x0100 + cpu.sp, cpu.pc & 0x00FF);
     cpu.sp--;
 
-    cpu_mod_sr(B, 1);
+    set_flag(B, true);
     cpu_write(0x0100 + cpu.sp, cpu.sr);
     cpu.sp--;
-    cpu_mod_sr(B, 1);
+    set_flag(B, false);
 
     cpu.pc = (uint16_t)cpu_fetch(0xFFFE) | ((uint16_t)cpu_fetch(0xFFFF) << 8);
     return 0;
@@ -649,11 +643,9 @@ static uint8_t CPX(void) {
     // comparing (I think this is just beautiful)
     uint16_t tmp = (uint16_t)cpu.x - (uint16_t)fetched;
 
-    if (cpu.x >= fetched) cpu_mod_sr(C, 1);
-
-    if ((tmp & 0x00FF) == 0x0000) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(C, cpu.x >= fetched);
+    set_flag(Z, (tmp & 0x00FF) == 0x0000);
+    set_flag(N, tmp & (1 << 7));
 
     return 0;
 }
@@ -668,11 +660,9 @@ static uint8_t CPY(void) {
 
     uint16_t tmp = (uint16_t)cpu.y - (uint16_t)fetched;
 
-    if (cpu.y >= fetched) cpu_mod_sr(C, 1);
-
-    if ((tmp & 0x00FF) == 0x0000) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(C, cpu.y >= fetched);
+    set_flag(Z, (tmp & 0x00FF) == 0x0000);
+    set_flag(N, tmp & (1 << 7));
 
     return 0;
 }
@@ -686,13 +676,8 @@ static uint8_t ORA(void) {
     fetch();
     cpu.ac = cpu.ac | fetched;
 
-    if (cpu.ac == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.ac & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(C, cpu.ac == 0);
+    set_flag(N, cpu.ac & (1 << 7));
 
     return 1;
 }
@@ -706,13 +691,8 @@ static uint8_t AND(void) {
     fetch();
     cpu.ac = cpu.ac & fetched;
 
-    if (cpu.ac == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.ac & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(C, cpu.ac == 0);
+    set_flag(N, cpu.ac & (1 << 7));
 
     return 1;
 }
@@ -726,13 +706,8 @@ static uint8_t EOR(void) {
     fetch();
     cpu.ac = cpu.ac ^ fetched;
 
-    if (cpu.ac == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.ac & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(C, cpu.ac == 0);
+    set_flag(N, cpu.ac & (1 << 7));
 
     return 1;
 }
@@ -741,12 +716,9 @@ static uint8_t BIT(void) {
     fetch();
     uint16_t tmp = cpu.ac & fetched;
 
-    if ((tmp & 0x00F) == 0x00) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    cpu_mod_sr(N, (fetched & (1 << 7)));
-    cpu_mod_sr(V, (fetched & (1 << 6)));
+    set_flag(Z, (tmp & 0x00F) == 0x00);
+    set_flag(N, (fetched & (1 << 7)));
+    set_flag(V, (fetched & (1 << 6)));
 
     return 0;
 }
@@ -756,16 +728,14 @@ static uint8_t ADC(void) {
 
     uint16_t tmp =
         (uint16_t)cpu.ac + (uint16_t)fetched + (uint16_t)cpu_extract_sr(C);
-    if (tmp > 255) cpu_mod_sr(C, 1);
 
-    if ((tmp & 0x00FF) == 0) cpu_mod_sr(Z, 1);
+    set_flag(C, tmp > 255);
+    set_flag(Z, (tmp & 0x00FF) == 0);
+    set_flag(V, ((~((uint16_t)cpu.ac ^ (uint16_t)fetched) &
+                  ((uint16_t)cpu.ac ^ (uint16_t)tmp)) &
+                 0x0080));
 
-    if ((~((uint16_t)cpu.ac ^ (uint16_t)fetched) &
-         ((uint16_t)cpu.ac ^ (uint16_t)tmp)) &
-        0x0080)
-        cpu_mod_sr(V, 1);
-
-    if (tmp & 0x0080) cpu_mod_sr(N, 1);
+    set_flag(N, tmp & 0x0080);
 
     cpu.ac = tmp & 0x00FF;
     return 1;
@@ -792,11 +762,9 @@ static uint8_t CMP(void) {
     // comparing (I think this is just beautiful)
     uint16_t tmp = (uint16_t)cpu.ac - (uint16_t)fetched;
 
-    if (cpu.ac >= fetched) cpu_mod_sr(C, 1);
-
-    if ((tmp & 0x00FF) == 0x0000) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(C, cpu.ac >= fetched);
+    set_flag(Z, (tmp & 0x00FF) == 0x0000);
+    set_flag(N, tmp & (1 << 7));
 
     return 1;
 }
@@ -808,13 +776,11 @@ static uint8_t SBC(void) {
     uint16_t val = ((uint16_t)fetched) ^ 0x00FF;
 
     uint16_t tmp = (uint16_t)cpu.ac + val + (uint16_t)cpu_extract_sr(C);
-    if (tmp & 0xFF00) cpu_mod_sr(C, 1);
 
-    if ((tmp & 0x00FF) == 0) cpu_mod_sr(Z, 1);
-
-    if ((tmp ^ (uint16_t)cpu.ac) & (tmp ^ val) & 0x0080) cpu_mod_sr(V, 1);
-
-    if (tmp & 0x0080) cpu_mod_sr(N, 1);
+    set_flag(C, tmp & 0xFF00);
+    set_flag(Z, (tmp & 0x00FF) == 0);
+    set_flag(V, ((tmp ^ (uint16_t)cpu.ac) & (tmp ^ val) & 0x0080));
+    set_flag(N, tmp & 0x0080);
 
     cpu.ac = tmp & 0x00FF;
     return 1;
@@ -824,11 +790,9 @@ static uint8_t ASL(void) {
     fetch();
     uint16_t tmp = (uint16_t)fetched << 1;
 
-    if ((tmp & 0xFF00) > 0) cpu_mod_sr(C, 1);
-
-    if ((tmp & 0x00FF) == 0x00) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(C, (tmp & 0xFF00) > 0);
+    set_flag(Z, (tmp & 0x00FF) == 0x00);
+    set_flag(N, tmp & (1 << 7));
 
     if (lookup[op].mode == &IMP) {
         cpu.ac = tmp & 0x00FF;
@@ -843,11 +807,9 @@ static uint8_t ROL(void) {
     fetch();
     uint16_t tmp = (uint16_t)(fetched << 1) | cpu_extract_sr(C);
 
-    if (tmp & 0xFF00) cpu_mod_sr(C, 1);
-
-    if ((tmp & 0x00FF) == 0x00) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(C, tmp & 0xFF00);
+    set_flag(Z, (tmp & 0x00FF) == 0x00);
+    set_flag(N, tmp & (1 << 7));
 
     if (lookup[op].mode == &IMP) {
         cpu.ac = tmp & 0x00FF;
@@ -862,11 +824,9 @@ static uint8_t ROR(void) {
     fetch();
     uint16_t tmp = (uint16_t)(cpu_extract_sr(C) << 7) | (fetched >> 1);
 
-    if (fetched & 0x01) cpu_mod_sr(C, 1);
-
-    if ((tmp & 0x00FF) == 0x00) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(C, fetched & 0x0001);
+    set_flag(Z, (tmp & 0x00FF) == 0x00);
+    set_flag(N, tmp & (1 << 7));
 
     if (lookup[op].mode == &IMP) {
         cpu.ac = tmp & 0x00FF;
@@ -881,11 +841,9 @@ static uint8_t LSR(void) {
     fetch();
     uint16_t tmp = (uint16_t)fetched >> 1;
 
-    if (fetched & 0x0001) cpu_mod_sr(C, 1);
-
-    if ((tmp & 0x00FF) == 0x00) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(C, fetched & 0x0001);
+    set_flag(Z, (tmp & 0x00FF) == 0x00);
+    set_flag(N, tmp & (1 << 7));
 
     if (lookup[op].mode == &IMP) {
         cpu.ac = tmp & 0x00FF;
@@ -902,9 +860,8 @@ static uint8_t DEC(void) {
 
     cpu_write(addr_abs, tmp & 0x00FF);
 
-    if ((tmp & 0x00FF) == 0x0000) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(Z, ((tmp & 0x00FF) == 0x0000));
+    set_flag(N, (tmp & (1 << 7)));
 
     return 0;
 }
@@ -912,9 +869,8 @@ static uint8_t DEC(void) {
 static uint8_t DEX(void) {
     cpu.x++;
 
-    if (cpu.x == 0x0000) cpu_mod_sr(Z, 1);
-
-    if (cpu.x & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(Z, cpu.x == 0x00);
+    set_flag(N, cpu.x & (1 << 7));
 
     return 0;
 }
@@ -922,9 +878,8 @@ static uint8_t DEX(void) {
 static uint8_t DEY(void) {
     cpu.y--;
 
-    if (cpu.y == 0x0000) cpu_mod_sr(Z, 1);
-
-    if (cpu.y & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(Z, cpu.y == 0x00);
+    set_flag(N, cpu.y & (1 << 7));
 
     return 0;
 }
@@ -935,9 +890,8 @@ static uint8_t INC(void) {
 
     cpu_write(addr_abs, tmp & 0x00FF);
 
-    if ((tmp & 0x00FF) == 0x0000) cpu_mod_sr(Z, 1);
-
-    if (tmp & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(Z, ((tmp & 0x00FF) == 0x0000));
+    set_flag(N, tmp & (1 << 7));
 
     return 0;
 }
@@ -945,9 +899,8 @@ static uint8_t INC(void) {
 static uint8_t INX(void) {
     cpu.x++;
 
-    if (cpu.x == 0x00) cpu_mod_sr(Z, 1);
-
-    if (cpu.x & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(Z, cpu.x == 0x00);
+    set_flag(N, cpu.x & (1 << 7));
 
     return 0;
 }
@@ -955,9 +908,8 @@ static uint8_t INX(void) {
 static uint8_t INY(void) {
     cpu.y++;
 
-    if (cpu.y == 0x00) cpu_mod_sr(Z, 1);
-
-    if (cpu.y & (1 << 7)) cpu_mod_sr(N, 1);
+    set_flag(Z, cpu.y == 0x00);
+    set_flag(N, cpu.y & (1 << 7));
 
     return 0;
 }
@@ -970,12 +922,12 @@ static uint8_t PHP(void) {
 }
 
 static uint8_t SEC(void) {
-    cpu_mod_sr(C, 1);
+    set_flag(C, true);
     return 0;
 }
 
 static uint8_t CLC(void) {
-    cpu_mod_sr(C, 0);
+    set_flag(C, false);
     return 0;
 }
 
@@ -990,13 +942,8 @@ static uint8_t PLA(void) {
     cpu.sp++;
     cpu.ac = cpu_fetch(0x0100 + cpu.sp);
 
-    if (cpu.ac == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.ac & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(Z, cpu.ac == 0);
+    set_flag(N, cpu.ac & (1 << 7));
 
     return 0;
 }
@@ -1010,53 +957,44 @@ static uint8_t PHA(void) {
 }
 
 static uint8_t CLI(void) {
-    cpu_mod_sr(I, 0);
+    set_flag(I, 0);
     return 0;
 }
 
 static uint8_t SEI(void) {
-    cpu_mod_sr(I, 1);
+    set_flag(I, true);
     return 0;
 }
 
 static uint8_t TYA(void) {
     cpu.ac = cpu.y;
 
-    if (cpu.ac == 0) {
-        cpu_mod_sr(Z, 1);
-    }
+    set_flag(Z, cpu.ac == 0);
+    set_flag(N, cpu.ac & (1 << 7));
 
-    if (cpu.ac & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
     return 0;
 }
 
 static uint8_t CLV(void) {
-    cpu_mod_sr(V, 0);
+    set_flag(V, false);
     return 0;
 }
 
 static uint8_t CLD(void) {
-    cpu_mod_sr(D, 0);
+    set_flag(D, false);
     return 0;
 }
 
 static uint8_t SED(void) {
-    cpu_mod_sr(D, 1);
+    set_flag(D, true);
     return 0;
 }
 
 static uint8_t TXA(void) {
     cpu.ac = cpu.x;
 
-    if (cpu.ac == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.ac & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(Z, cpu.ac == 0);
+    set_flag(N, (cpu.ac & (1 << 7)));
 
     return 0;
 }
@@ -1069,13 +1007,8 @@ static uint8_t TXS(void) {
 static uint8_t TAX(void) {
     cpu.x = cpu.ac;
 
-    if (cpu.x == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.x & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(Z, cpu.x == 0);
+    set_flag(N, (cpu.x & (1 << 7)));
 
     return 0;
 }
@@ -1083,13 +1016,8 @@ static uint8_t TAX(void) {
 static uint8_t TAY(void) {
     cpu.y = cpu.ac;
 
-    if (cpu.y == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.y & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(Z, cpu.y == 0);
+    set_flag(N, (cpu.y & (1 << 7)));
 
     return 0;
 }
@@ -1097,13 +1025,8 @@ static uint8_t TAY(void) {
 static uint8_t TSX(void) {
     cpu.x = cpu.sp;
 
-    if (cpu.x == 0) {
-        cpu_mod_sr(Z, 1);
-    }
-
-    if (cpu.x & (1 << 7)) {
-        cpu_mod_sr(N, 1);
-    }
+    set_flag(Z, cpu.x == 0);
+    set_flag(N, (cpu.x & (1 << 7)));
 
     return 0;
 }
