@@ -1,9 +1,9 @@
 #ifndef INC_6502_KINPUT_H
 #define INC_6502_KINPUT_H
 
-#define SPACE 0
-#define R 1
+#include <stdint.h>
 
-void kin_start(void);
+void kin_tui_listen(void);
+uint8_t kin_tui_should_quit(void);
 
 #endif

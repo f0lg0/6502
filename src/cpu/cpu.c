@@ -64,7 +64,6 @@ uint8_t cpu_mod_sr(uint8_t flag, uint8_t val) {
  * @return void
  * */
 void cpu_reset(void) {
-    printf("(cpu_reset) called.\n");
     reset();
 
     cycles = 8;

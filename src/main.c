@@ -1,3 +1,4 @@
+#include <ncurses.h>
 #include <stdio.h>
 
 #include "cpu/cpu.h"
@@ -5,26 +6,31 @@
 #include "peripherals/interface.h"
 #include "peripherals/kinput.h"
 
-uint8_t DEBUG = 1;
+uint8_t DEBUG = 0;
 
 int main(void) {
     mem_init();
     cpu_init();
     cpu_reset();
 
-    inter_init_display();
-    inter_init_text();
+    initscr();
+    curs_set(0);
+    noecho();
+    addstr("6502 Emulator\n-----------------\n");
+    refresh();
 
     while (1) {
-        kin_start();
-        inter_draw();
+        inter_tui_display_cpu();
+        refresh();
+        kin_tui_listen();
 
-        if (inter_should_quit()) {
+        if (kin_tui_should_quit()) {
             break;
         }
     }
 
+    endwin();
+
     mem_dump();
-    inter_stop_display();
     return 0;
 }

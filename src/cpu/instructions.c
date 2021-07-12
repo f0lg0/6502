@@ -3,7 +3,6 @@
  * share the same cpu struct.
  *
  * TODO: check for errors on cpu_fetch()
- * ! SetFlag should also reset flags if expression is false!!!
  */
 
 #include "instructions.h"
@@ -466,10 +465,7 @@ static uint8_t REL(void) {
  * @param void
  * @return 0
  */
-static uint8_t XXX(void) {
-    printf("(UNKNOWN) opcode not recognized.\n");
-    return 0;
-}
+static uint8_t XXX(void) { return 0; }
 
 /**
  * LDA: Load Accumulator
