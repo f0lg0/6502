@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "cpu/cpu.h"
 #include "mem/mem.h"
@@ -13,17 +14,25 @@ int main(void) {
     cpu_init();
     cpu_reset();
 
-    initscr();
+    WINDOW* win = newwin(WIN_ROWS, WIN_COLS, 0, 0);
+    if ((win = initscr()) == NULL) {
+        fprintf(stderr, "Error initialising ncurses.\n");
+        exit(1);
+    }
+
     curs_set(0);
     noecho();
-    addstr(
-        "6502 Emulator\n-----------------\nCommands:\n\tEnter: executes next "
-        "instruction\n\tr: Resets CPU\n\tq: Quits\n-----------------\n");
-    refresh();
+    box(win, 0, 0);
+    wrefresh(win);
+
+    interface_display_header();
+    wrefresh(win);
 
     while (1) {
         interface_display_cpu();
-        refresh();
+        interface_display_mem();
+        wrefresh(win);
+
         kinput_listen();
 
         if (kinput_should_quit()) {
@@ -31,6 +40,7 @@ int main(void) {
         }
     }
 
+    delwin(win);
     endwin();
 
     mem_dump();
