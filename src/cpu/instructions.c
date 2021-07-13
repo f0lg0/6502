@@ -14,15 +14,6 @@
 #include "../utils/misc.h"
 #include "cpu.h"
 
-// utility function
-static void set_flag(uint8_t flag, bool exp) {
-    if (exp) {
-        cpu_mod_sr(flag, 1);
-    } else {
-        cpu_mod_sr(flag, 0);
-    }
-}
-
 /*
  * =============================================
  * MODES PROTOTYPES
@@ -230,14 +221,24 @@ static void branch(void) {
     debug_print("(branch) now we are at 0x%X\n", cpu.pc);
 }
 
+static void set_flag(uint8_t flag, bool exp) {
+    if (exp) {
+        cpu_mod_sr(flag, 1);
+    } else {
+        cpu_mod_sr(flag, 0);
+    }
+}
+
+/**
+ * reset: actual reset process, must use the cpu_reset wrapper
+ * @param void
+ * @return void
+ * */
 void reset(void) {
     addr_abs = 0x8000;
-    /*     uint16_t low = cpu_fetch(addr_abs + 0);
-        uint16_t high = cpu_fetch(addr_abs + 1);
 
-        cpu.pc = (high << 8) | low; */
     cpu.pc = addr_abs;
-    debug_print("PC: 0x%X\n", cpu.pc);
+    debug_print("(reset) PC: 0x%X\n", cpu.pc);
 
     cpu.ac = 0;
     cpu.x = 0;

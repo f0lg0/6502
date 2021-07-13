@@ -20,11 +20,11 @@ int main(void) {
     refresh();
 
     while (1) {
-        inter_tui_display_cpu();
+        interface_display_cpu();
         refresh();
-        kin_tui_listen();
+        kinput_listen();
 
-        if (kin_tui_should_quit()) {
+        if (kinput_should_quit()) {
             break;
         }
     }

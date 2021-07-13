@@ -11,11 +11,10 @@
  *
  *  - RESERVED: 256 bytes 0x0000 to 0x00FF -> Zero Page
  *  - RESERVED: 256 bytes 0x0100 to 0x01FF -> System Stack
- *  - PROGRAM DATA: 65536 - (256*2) - 6 bytes of memory
+ *  - PROGRAM DATA: 0x10000 - 0x206
  *  - RESERVED: last 6 bytes of memory
  *
- *  In this implementation I have split the pages, hopefully it
- *  will come in handy in the future
+ *  pages are split into different arrays
  *
  * */
 struct mem memory;
@@ -38,6 +37,12 @@ static uint8_t write_mem(uint16_t addr, uint8_t data) {
     return 0;
 }
 
+/**
+ * load_example: Loads hard coded example program to program memory
+ *               the program multiplies 10 by 3 and it's not optimized
+ * @param void
+ * @return void
+ * */
 static void load_example(void) {
     const char* instructions[] = {
         "A2", "0A", "8E", "00", "00", "A2", "03", "8E", "01", "00",
@@ -65,24 +70,26 @@ void mem_init(void) {
     memset(memory.stack, 0, sizeof(memory.stack));
     memset(memory.data, 0, sizeof(memory.data));
 
-    // TODO: not really sure about this
-    //    memory.last_six[0] = 0xA;
-    //    memory.last_six[1] = 0xB;
-    //    memory.last_six[2] = 0xC;
-    //    memory.last_six[3] = 0xD;
-    //    memory.last_six[4] = 0xE;
-    //    memory.last_six[5] = 0xF;
+    memory.last_six[0] = 0xFFFA;
+    memory.last_six[1] = 0xFFFB;
+    memory.last_six[2] = 0xFFFC;
+    memory.last_six[3] = 0xFFFD;
+    memory.last_six[4] = 0xFFFE;
+    memory.last_six[5] = 0xFFFF;
 
     load_example();
 }
 
+/**
+ * mem_get_ptr: returns pointer to currently active memory struct
+ * */
 struct mem* mem_get_ptr(void) {
     struct mem* mp = &memory;
     return mp;
 }
 
 /**
- * mem_dump: Dump the memory to a file called dump.bin
+ * mem_dump: Dumps the memory to a file called dump.bin
  *
  * @param void
  * @return 0 if success, 1 if fail

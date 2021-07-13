@@ -17,6 +17,7 @@ struct central_processing_unit cpu;
 // clock cycles, every fetch implies a clock cycle
 uint32_t cycles = 0;
 
+// reference to the memory module
 struct mem* mem_ptr = NULL;
 
 /**
@@ -55,10 +56,7 @@ uint8_t cpu_mod_sr(uint8_t flag, uint8_t val) {
 }
 
 /**
- * cpu_reset: Reset the CPU to its initial state.
- *            There are different initial states for different
- *            machines, see like the reset process in the C64.
- *            At the moment I am setting everything to 0.
+ * cpu_reset: Reset the CPU to its initial state. Wrapper around reset()
  *
  * @param void
  * @return void

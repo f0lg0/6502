@@ -7,15 +7,32 @@
 #include "interface.h"
 
 uint8_t QUIT = 0;
-void kin_tui_listen(void) {
+
+/**
+ * kinput_listen: listens for keyboard events and exuctes respective actions
+ * @param void
+ * @return void
+ * */
+void kinput_listen(void) {
     char c = getch();
-    if (c == '\n') {
-        cpu_exec();
-    } else if (c == 'r') {
-        cpu_reset();
-    } else if (c == 'q') {
-        QUIT = 1;
+
+    switch (c) {
+        case '\n':
+            cpu_exec();
+            break;
+
+        case 'r':
+            cpu_reset();
+            break;
+
+        case 'q':
+            QUIT = 1;
+            break;
+
+        default:
+            break;
     }
 }
 
-uint8_t kin_tui_should_quit(void) { return QUIT; }
+// kinput_should_quit: sends quit signal by returning QUIT status
+uint8_t kinput_should_quit(void) { return QUIT; }

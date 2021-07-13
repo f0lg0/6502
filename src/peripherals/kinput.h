@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void kin_tui_listen(void);
-uint8_t kin_tui_should_quit(void);
+void kinput_listen(void);
+uint8_t kinput_should_quit(void);
 
 #endif
