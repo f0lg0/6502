@@ -16,7 +16,9 @@ int main(void) {
     initscr();
     curs_set(0);
     noecho();
-    addstr("6502 Emulator\n-----------------\n");
+    addstr(
+        "6502 Emulator\n-----------------\nCommands:\n\tEnter: executes next "
+        "instruction\n\tr: Resets CPU\n\tq: Quits\n-----------------\n");
     refresh();
 
     while (1) {

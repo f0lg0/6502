@@ -70,12 +70,13 @@ void mem_init(void) {
     memset(memory.stack, 0, sizeof(memory.stack));
     memset(memory.data, 0, sizeof(memory.data));
 
-    memory.last_six[0] = 0xFFFA;
-    memory.last_six[1] = 0xFFFB;
-    memory.last_six[2] = 0xFFFC;
-    memory.last_six[3] = 0xFFFD;
-    memory.last_six[4] = 0xFFFE;
-    memory.last_six[5] = 0xFFFF;
+    // im not really sure about this
+    memory.last_six[0] = 0xA;
+    memory.last_six[1] = 0xB;
+    memory.last_six[2] = 0xC;
+    memory.last_six[3] = 0xD;
+    memory.last_six[4] = 0xE;
+    memory.last_six[5] = 0xF;
 
     load_example();
 }
