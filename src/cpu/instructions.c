@@ -3,6 +3,7 @@
  * share the same cpu struct.
  *
  * TODO: check for errors on cpu_fetch()
+ * TODO: add missing comments
  */
 
 #include "instructions.h"
@@ -205,10 +206,23 @@ uint8_t fetched = 0x00;
  * HELPERS
  * =============================================
  */
+
+/**
+ * fetch: wrapper around cpu_fetch
+ * @param void
+ * @return void
+ * */
 static void fetch(void) {
     if (lookup[op].mode != &IMP) fetched = cpu_fetch(addr_abs);
 }
 
+/**
+ * branch: executes a branch to defined, see:
+ * https://en.wikipedia.org/wiki/Branch_(computer_science)
+ *
+ * @param void
+ * @return void
+ * */
 static void branch(void) {
     (*cys)++;
     addr_abs = cpu.pc + addr_rel;
@@ -221,6 +235,13 @@ static void branch(void) {
     debug_print("(branch) now we are at 0x%X\n", cpu.pc);
 }
 
+/**
+ * set_flag: sets or unsets corresponding bit in SR depending on the passed
+ * expression
+ * @param flag the bit you want to set in the SR
+ * @param exp boolean that determines the bit status
+ * @return void
+ * */
 static void set_flag(uint8_t flag, bool exp) {
     if (exp) {
         cpu_mod_sr(flag, 1);
