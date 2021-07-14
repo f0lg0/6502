@@ -28,17 +28,13 @@ int main(void) {
     interface_display_header();
     wrefresh(win);
 
-    while (1) {
+    do {
         interface_display_cpu();
         interface_display_mem();
         wrefresh(win);
 
         kinput_listen();
-
-        if (kinput_should_quit()) {
-            break;
-        }
-    }
+    } while (!kinput_should_quit());
 
     delwin(win);
     endwin();
