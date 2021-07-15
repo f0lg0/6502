@@ -28,6 +28,14 @@ Or you can run the _shortcut_ script
 bash run.sh
 ```
 
+### Loading a custom program
+
+By default, the emulator loads `example.bin`. If you want to load a custom binary file, just provide the path as the second argument while launching the emulator:
+
+```
+./bin/emulator.out your_binary_here
+```
+
 ## Code style
 
 The paradigm I've chosen is `modular programming`, especially because this is C. System components aren't defined in a OOP way.
@@ -61,7 +69,7 @@ Do you want to contribute? Here are some things that are still a WIP.
     -   due to uint16_t always being between `0x0000` and `0xFFFF` we don't have to perform extra checking while fetching memory.
 -   [ ] add remaining comments to `instructions.c`
 -   [ ] create a better interface
--   [ ] add the possibility to load custom programs
+-   [x] add the possibility to load custom programs
 
 ## References
 
