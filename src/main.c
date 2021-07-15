@@ -9,14 +9,27 @@
 
 uint8_t DEBUG = 0;
 
-int main(void) {
-    mem_init();
+int main(int argc, char** argv) {
+    switch (argc) {
+        case 1:
+            mem_init("example.bin");
+            break;
+
+        case 2:
+            mem_init(argv[1]);
+            break;
+
+        default:
+            fprintf(stderr, "[FAILED] Too many arguments.\n");
+            exit(1);
+    }
+
     cpu_init();
     cpu_reset();
 
     WINDOW* win = newwin(WIN_ROWS, WIN_COLS, 0, 0);
     if ((win = initscr()) == NULL) {
-        fprintf(stderr, "Error initialising ncurses.\n");
+        fprintf(stderr, "[FAILED] Error initialising ncurses.\n");
         exit(1);
     }
 

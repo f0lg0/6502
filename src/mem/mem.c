@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "../utils/misc.h"
 
@@ -19,44 +20,34 @@
  * */
 struct mem memory;
 
-static uint8_t write_mem(uint16_t addr, uint8_t data) {
-    debug_print("(write_mem) writing: 0x%X at addr: 0x%X\n", data, addr);
-    // this yields "warning: comparison is always true due to limited range of
-    // data type" if (!(addr >= 0x0000 && addr <= 0xFFFF)) return 1;
-
-    if (addr <= 0x00FF) {
-        memory.zero_page[addr] = data;
-    } else if (addr >= 0x0100 && addr <= 0x01FF) {
-        memory.stack[addr - 0x0100] = data;
-    } else if (addr >= 0xFFFA) {
-        memory.last_six[addr - 0xFDFA] = data;
-    } else {
-        memory.data[addr - 0x0200] = data;
-    }
-
-    return 0;
-}
-
 /**
- * load_example: Loads hard coded example program to program memory
- *               the program multiplies 10 by 3 and it's not optimized
- * @param void
+ * load_program: Loads binary into program data memory
+ * @param path Path to binary on hosst machine
  * @return void
  * */
-static void load_example(void) {
-    const char* instructions[] = {
-        "A2", "0A", "8E", "00", "00", "A2", "03", "8E", "01", "00",
-        "AC", "00", "00", "A9", "00", "18", "6D", "01", "00", "88",
-        "D0", "FA", "8D", "02", "00", "EA", "EA", "EA",
-    };
+static void load_program(char* path) {
+    FILE* fp = fopen(path, "rb");
 
-    uint16_t off = 0x8000;
-    for (uint8_t i = 0; i < 28; i++) {
-        write_mem(off++, strtoul(instructions[i], NULL, 16));
+    if (fp == NULL) {
+        fprintf(stderr, "[FAILED] Error while loading provided file.\n");
+        exit(1);
     }
 
-    write_mem(0xFFFC, 0x00);
-    write_mem(0xFFFD, 0x80);
+    struct stat st;
+    stat(path, &st);
+    size_t fsize = st.st_size;
+
+    size_t bytes_read =
+        fread(memory.data + (0x8000 - 0x0200), 1, sizeof(memory.data), fp);
+
+    if (bytes_read != fsize) {
+        fprintf(
+            stderr,
+            "[FAILED] Amount of bytes read doesn't match read file size.\n");
+        exit(1);
+    }
+
+    fclose(fp);
 }
 
 /**
@@ -65,7 +56,7 @@ static void load_example(void) {
  * @param void
  * @return void
  * */
-void mem_init(void) {
+void mem_init(char* filename) {
     memset(memory.zero_page, 0, sizeof(memory.zero_page));
     memset(memory.stack, 0, sizeof(memory.stack));
     memset(memory.data, 0, sizeof(memory.data));
@@ -78,7 +69,12 @@ void mem_init(void) {
     memory.last_six[4] = 0xE;
     memory.last_six[5] = 0xF;
 
-    load_example();
+    if (filename == NULL) {
+        fprintf(stderr, "[FAILED] No binary program was provided.\n");
+        exit(1);
+    } else {
+        load_program(filename);
+    }
 }
 
 /**
