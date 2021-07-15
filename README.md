@@ -57,7 +57,8 @@ The loaded program multiplies 10 by 3, in order to try it you must single step i
 
 Do you want to contribute? Here are some things that are still a WIP.
 
--   [ ] check for errors on cpu_fetch() calls
+-   [x] check for errors on cpu_fetch() calls
+    -   due to uint16_t always being between `0x0000` and `0xFFFF` we don't have to perform extra checking while fetching memory.
 -   [ ] add remaining comments to `instructions.c`
 -   [ ] create a better interface
 -   [ ] add the possibility to load custom programs

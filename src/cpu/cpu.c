@@ -151,10 +151,6 @@ void cpu_exec() {
         // executing in a take
         if (cycles == 0) {
             fetched = cpu_fetch(cpu.pc);
-            if (fetched == -1) {
-                printf("(FAILED) Couldn't fetch valid data!\n");
-                exit(1);
-            };
 
             debug_print("(cpu_exec) fetched: 0x%X\n", fetched);
             inst_exec(fetched, &cycles);
