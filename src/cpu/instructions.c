@@ -644,7 +644,7 @@ static uint8_t BVC(void) {
 }
 
 static uint8_t BVS(void) {
-    if (cpu_extract_sr(V) == 0) {
+    if (cpu_extract_sr(V) == 1) {
         branch();
     }
     return 0;
